@@ -292,3 +292,6 @@ def generate_random_registered_bookings(engine: Engine, k: int = 5, s: int = 1, 
             print("#" * 50)
             for booking in registered_bookings_to_add:
                 print(booking)
+
+
+
