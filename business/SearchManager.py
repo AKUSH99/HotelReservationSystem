@@ -16,39 +16,43 @@ if __name__ == '__main__':
         print("Database file found.")
 
 
-    engine = create_engine(f'sqlite:///{db_file}')
+    class SearchManagerTest:
+        def __init__(self, database_file):
+            database_path = Path(database_file)
+            if not database_path.is_file():
+                init_db(database_file, generate_example_data=True)
+            self.__engine = create_engine(f"sqlite:///{database_file}", echo=False)
+            self.__session = scoped_session(sessionmaker(bind=self.__engine))
 
-    session = scoped_session(sessionmaker(bind=engine))
-    query = select(Hotel)
-    print(query)
-    hotels = session.execute(query).scalars().all()
+        def get_all_hotels(self):
+            query = select(Hotel)
+            hotels = self.__session.execute(query).scalars().all()
+            return hotels
 
-    for hotel in hotels:
-        print(hotel.address)
-    city = input("Enter city: ")
+        def get_hotels_by_name(self, name):
+            query = select(Hotel).where(Hotel.name.like(f"%{name}%"))
+            hotels = self.__session.execute(query).scalars().all()
+            return hotels
 
-    query_1 = select(Hotel).join(Address).where(func.lower(Address.city) == city.lower())
-
-    hotels = session.execute(query_1).scalars().all()
-
-    for hotel in hotels:
-        print(hotel)
-
-    query_2 = select(Hotel).where(Hotel.stars > 3)
-
-    hotels = session.execute(query_2).scalars().all()
-
-    for hotel in hotels:
-        print(hotel)
-
-    # name = input("Enter name: ")
-    #
-    # query_3 = select(Hotel).where(Hotel.name.like(f"%{name}%"))
-    # print(query_3)
-    # hotels = session.execute(query_3).scalars().all()
-    #
-    # for hotel in hotels:
-    #     print(hotel)
+        def get_hotels_by_city(self, city):
+            query = select(Hotel).join(Address).where(func.lower(Address.city) == city.lower())
+            hotels = self.__session.execute(query).scalars().all()
+            return hotels
 
 
-#  Sujani is the best + 1
+    if __name__ == "__main__":
+        sm = SearchManagerTest("../data/database.db")
+        hotels = sm.get_all_hotels()
+        for hotel in hotels:
+            print(hotel)
+
+        # name = input("Enter name hotel name: ")
+        # hotel_name = sm.get_hotels_by_name(name)
+        # for hotel in hotel_name:
+        #     print(hotel)
+
+        city = input("Enter city name: ")
+        hotel_city = sm.get_hotels_by_city(city)
+        for hotel in hotel_city:
+            print(hotel)
+
