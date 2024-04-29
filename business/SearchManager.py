@@ -35,7 +35,7 @@ if __name__ == '__main__':
             return hotels
 
         def get_hotels_by_city(self, city):
-            query = select(Hotel).join(Address).where(func.lower(Address.city) == city.lower())
+            query = select(Hotel).join(Address).where(func.lower(Address.city.like(f"%{city}%")))
             hotels = self.__session.execute(query).scalars().all()
             return hotels
 
