@@ -69,5 +69,6 @@ if __name__ == '__main__':
         hotel_stars = sm.get_hotels_by_city_and_stars(city=city, stars=stars)
         for hotel in hotel_stars:
             print(hotel)
+        else: print("There are no hotels available with this many stars!")
 
 
