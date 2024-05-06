@@ -40,7 +40,7 @@ if __name__ == '__main__':
             return hotels
 
         def get_hotels_by_city_and_stars(self, city, stars):
-            query = select(Hotel).join(Address).where((Address.city == city) & (Hotel.stars == stars))
+            query = select(Hotel).join(Address).where((Address.city.like(f"%{city}%") & (Hotel.stars == stars)))
             hotels = self.__session.execute(query).scalars().all()
             return hotels
 
@@ -65,10 +65,15 @@ if __name__ == '__main__':
         # Ich möchte alle Hotels in einer Stadt nach der Anzahl der
         # Sterne durchsuchen.
         city = str(input("Enter city: "))
-        stars = int(input("Enter stars: "))
+        stars = int(input("Enter stars 1 to 5: "))
         hotel_stars = sm.get_hotels_by_city_and_stars(city=city, stars=stars)
-        for hotel in hotel_stars:
-            print(hotel)
-        else: print("There are no hotels available with this many stars!")
+        if not hotel_stars and stars == stars:
+            print("No hotels found with given amount of stars.! ")
+        else:
+            for hotel in hotel_stars:
+                print(hotel)
 
 
+        # 1.1.3. Ich möchte alle Hotels in einer Stadt durchsuchen, die Zimmer
+        # haben, die meiner Gästezahl entsprechen (nur 1 Zimmer pro
+        # Buchung), entweder mit oder ohne Anzahl der Sterne.
