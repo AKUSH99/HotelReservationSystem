@@ -39,6 +39,11 @@ if __name__ == '__main__':
             hotels = self.__session.execute(query).scalars().all()
             return hotels
 
+        def get_hotels_by_city_and_stars(self, city, stars):
+            query = select(Hotel).join(Address).where((Address.city == city) & (Hotel.stars == stars))
+            hotels = self.__session.execute(query).scalars().all()
+            return hotels
+
 
     if __name__ == "__main__":
         sm = SearchManagerTest("../data/database.db")
@@ -46,13 +51,23 @@ if __name__ == '__main__':
         for hotel in hotels:
             print(hotel)
 
-        # name = input("Enter name hotel name: ")
-        # hotel_name = sm.get_hotels_by_name(name)
-        # for hotel in hotel_name:
-        #     print(hotel)
 
-        city = input("Enter city name: ")
+        # User Story 1.1.1.
+        # Ich möchte alle Hotels in einer Stadt durchsuchen, damit ich
+        # das Hotel nach meinem bevorzugten Standort (Stadt) auswählen kann.
+        city = input("Enter city: ")
         hotel_city = sm.get_hotels_by_city(city)
         for hotel in hotel_city:
             print(hotel)
+
+
+        # User Story 1.1.2
+        # Ich möchte alle Hotels in einer Stadt nach der Anzahl der
+        # Sterne durchsuchen.
+        city = str(input("Enter city: "))
+        stars = int(input("Enter stars: "))
+        hotel_stars = sm.get_hotels_by_city_and_stars(city=city, stars=stars)
+        for hotel in hotel_stars:
+            print(hotel)
+
 
