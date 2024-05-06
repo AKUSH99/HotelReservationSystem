@@ -45,7 +45,7 @@ if __name__ == '__main__':
             return hotels
 
         def get_hotels_by_city_room_guest_stars(self, city, max_guest, stars):
-            query = select(Hotel).join(Hotel.address).join(Room.max_guests).where(Address.city.like(f"%{city}%") & (Hotel.stars == stars) & (Room.max_guests == max_guest))
+            query = select(Hotel).join(Address).join(Room).where(Address.city.like(f"%{city}%") & (Hotel.stars == stars) & (Room.max_guests == max_guest))
             hotels = self.__session.execute(query).scalars().all()
             return hotels
 
@@ -87,4 +87,5 @@ if __name__ == '__main__':
         stars = int(input("Enter stars 1 to 5 (optional): "))
         hotel_city_max_guest_stars = sm.get_hotels_by_city_room_guest_stars(city=city, max_guest=max_guest, stars=stars)
         for hotel in hotel_city_max_guest_stars:
-            print(hotel)
+            print(hotel.rooms)
+
