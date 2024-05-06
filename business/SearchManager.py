@@ -44,6 +44,11 @@ if __name__ == '__main__':
             hotels = self.__session.execute(query).scalars().all()
             return hotels
 
+        def get_hotels_by_city_room_guest_stars(self, city, room, num_guest, stars):
+            query = select(Hotel).join(Address).join(Booking).join(Room).where((Address.city.like(f"%{city}%") & (Hotel.stars == stars) & (Room.max_guests == num_guest)))
+            hotels = self.__session.execute(query).scalars().all()
+            return hotels
+
 
     if __name__ == "__main__":
         sm = SearchManagerTest("../data/database.db")
@@ -77,3 +82,9 @@ if __name__ == '__main__':
         # 1.1.3. Ich möchte alle Hotels in einer Stadt durchsuchen, die Zimmer
         # haben, die meiner Gästezahl entsprechen (nur 1 Zimmer pro
         # Buchung), entweder mit oder ohne Anzahl der Sterne.
+        city = str(input("Enter city: "))
+        max_guests = int(input("Enter max guests: "))
+        stars = int(input("Enter stars 1 to 5 (optional): "))
+        hotel_city_maxguest_stars = sm.get_hotels_by_city_room_guest_stars(city=city, num_guest=max_guests, stars=stars, room=0)
+        for hotel in hotel_city_maxguest_stars:
+            print(hotel)
