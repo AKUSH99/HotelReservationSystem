@@ -70,8 +70,9 @@ if __name__ == "__main__":
     # User Story 1.1.2
     # Ich möchte alle Hotels in einer Stadt nach der Anzahl der
     # Sterne durchsuchen.
-    city = str(input("Enter city: "))
-    stars = int(input("Enter stars 1 to 5: "))
+    #TODO: Kommentare entfernen bei der Abgabe
+    city = "Olten" #str(input("Enter city: "))
+    stars = 3 #int(input("Enter stars 1 to 5: "))
     hotel_stars = sm.get_hotels_by_city_and_stars(city=city, stars=stars)
     if not hotel_stars and stars == stars:
         print("No hotels found with given amount of stars.! ")
