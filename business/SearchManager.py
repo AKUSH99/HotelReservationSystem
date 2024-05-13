@@ -35,7 +35,7 @@ class SearchManager:
 
     def get_hotels_by_city_room_guest_stars(self, city, max_guest, stars=None):
         query = select(Hotel).join(Address).join(Room).where(
-            Address.city.like(f"%{city}%") & (Room.max_guests == max_guest)
+            func.lower(Address.city.like(f"%{city}%")) & (Room.max_guests == max_guest)
         ).distinct()
         if stars is not None:
             query = query.where(Hotel.stars == stars)
