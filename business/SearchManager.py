@@ -101,6 +101,7 @@ if __name__ == "__main__":
             print(f"{hotel_name:<20} {room.number}")
 
 
+#miau
 
     # 1.1.4. Ich möchte alle Hotels in einer Stadt durchsuchen,
     # die während meines Aufenthaltes ("von" (start_date) und "bis" (end_date)) Zimmer für meine Gästezahl zur Verfügung haben,
