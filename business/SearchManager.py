@@ -36,11 +36,11 @@ class SearchManager:
     def get_hotels_by_city_room_guest_stars(self, city, max_guest, stars=None):
         query = select(Hotel).join(Address).join(Room).where(
             Address.city.like(f"%{city}%") & (Room.max_guests == max_guest)
-        )
+        ).distinct()
         if stars is not None:
             query = query.where(Hotel.stars == stars)
 
-        print(query) #TODO: Debug
+        print(query)
         result = self.__session.execute(query).scalars().all()
         return result
 
@@ -87,6 +87,9 @@ if __name__ == "__main__":
     city = str(input("Enter city: "))
     max_guest = int(input("Enter max guests: "))
     stars = input("Enter stars 1 to 5 (optional): ")
+    if max_guest < 1 or max_guest > 4:
+        print("Enter valid number of guests!")
+
     if stars == "":
         stars = None
     else:
@@ -94,14 +97,13 @@ if __name__ == "__main__":
     hotel_city_max_guest_stars = sm.get_hotels_by_city_room_guest_stars(city=city, max_guest=max_guest, stars=stars)
     for hotel in hotel_city_max_guest_stars:
         print(hotel)
-        hotel_name = f"{hotel.name}:"
-        if len(hotel_name) >=20:
-            hotel_name = f"{hotel.name[25:]}...: "
+        hotel_name = f"{hotel.name}-->"
+        if len(hotel_name) >=100:
+            hotel_name = f"{hotel.name[:105]}...-> "
         for room in hotel.rooms:
-            print(f"{hotel_name:<20} {room.number}")
+            print(f"{hotel_name:<20} room number: {room.number} | room type: {room.type} | description: {room.description}| amenities: {room.amenities} | price per night: {room.price} |")
 
 
-#miau
 
     # 1.1.4. Ich möchte alle Hotels in einer Stadt durchsuchen,
     # die während meines Aufenthaltes ("von" (start_date) und "bis" (end_date)) Zimmer für meine Gästezahl zur Verfügung haben,
