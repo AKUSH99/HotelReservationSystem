@@ -132,7 +132,7 @@ class Room(Base):
     price: Mapped[float] = mapped_column("price")
 
     def __repr__(self) -> str:
-        return f"Room(hotel={self.hotel!r}, room_number={self.number!r}, type={self.type!r}, description={self.description!r}, amenities={self.amenities!r}, price={self.price!r})"
+        return f"Room(hotel={self.hotel!r}, room_number={self.number!r}, type={self.type!r}, max_guests={self.max_guests!r}, description={self.description!r}, amenities={self.amenities!r}, price={self.price!r})"
 
 
 class Booking(Base):
