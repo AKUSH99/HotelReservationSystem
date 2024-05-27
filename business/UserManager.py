@@ -52,3 +52,7 @@ if __name__ == "__main__":
     # print(login("adminUser", "adminPass"))
     # print(update_user("guestUser", email="guest@example.com"))
     # print(delete_user("adminUser"))
+
+#1.4. Als Gastnutzer möchte ich möglichst wenig Informationen über mich preisgeben, damit meine Daten privat bleiben.
+
+#1.6. Als Gastbenutzer möchte ich mich mit meiner E-Mail-Adresse und einer persönlichen Kennung (Passwort) registrieren können, um weitere Funktionalitäten nutzen zu können (z.B. Buchungshistorie, Buchungsänderung etc. [siehe 2.1].

@@ -28,6 +28,27 @@ class SearchManager:
         hotels = self.__session.execute(query).scalars().all()
         return hotels
 
+    def search_hotels_by_city_date_guests_stars(self, city, start_date, end_date, max_guest, stars=None):
+        query = select(Hotel).join(Address).join(Room).join(Booking, isouter=True).where(
+            and_(
+                func.lower(Address.city) == city.lower(),
+                Room.max_guests >= max_guest,
+                or_(
+                    Booking.id.is_(None),
+                    and_(
+                        Booking.end_date < start_date,
+                        Booking.start_date > end_date
+                    )
+                )
+            )
+        ).distinct()
+
+        if stars is not None:
+            query = query.where(Hotel.stars == stars)
+
+        result = self.__session.execute(query).scalars().all()
+        return result
+
     def get_hotels_by_city_and_stars(self, city, stars):
         query = select(Hotel).join(Address).where((Address.city.like(f"%{city}%") & (Hotel.stars == stars)))
         hotels = self.__session.execute(query).scalars().all()
@@ -89,6 +110,8 @@ class SearchManager:
             "Price per Night": room[5],
             "Total Price": room[6]
         } for room in available_rooms]
+
+
 
 
         print(query)
@@ -158,9 +181,21 @@ if __name__ == "__main__":
     # 1.1.4. Ich möchte alle Hotels in einer Stadt durchsuchen,
     # die während meines Aufenthaltes ("von" (start_date) und "bis" (end_date)) Zimmer für meine Gästezahl zur Verfügung haben,
     # entweder mit oder ohne Anzahl der Sterne, damit ich nur relevante Ergebnisse sehe.
-    city = str(input("Enter city: "))
+    # Beispiel: Suche nach Hotels in einer Stadt, die während des Aufenthalts Zimmer für die Gästezahl haben, optional gefiltert nach Sternen
+    city = input("Enter city: ")
+    start_date = input("Enter the start date of your stay (YYYY-MM-DD): ")
+    end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
+    max_guest = int(input("Enter max guests: "))
+    stars = input("Enter stars 1 to 5 (optional): ")
 
+    if stars == "":
+        stars = None
+    else:
+        stars = int(stars)
 
+    hotels = sm.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)
+    for hotel in hotels:
+        print(hotel)
 
     # 1.1.5. Ich möchte die folgenden Informationen pro Hotel sehen:
     # Name, Adresse, Anzahl der Sterne.
