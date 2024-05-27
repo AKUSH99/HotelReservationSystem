@@ -15,7 +15,7 @@ class Console(object):
 
 class Application(object):
 
-    def __init__(self, start: Console):
+    def __init__(selfrole, start: Console):
         self._current: Console = start
 
     def run(self):
