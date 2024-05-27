@@ -161,3 +161,4 @@ class Booking(Base):
 
     def __repr__(self) -> str:
         return f"Booking(room={self.room!r}, guest={self.guest!r}, start_date={self.start_date!r}, end_date={self.end_date!r}, comment={self.comment!r})"
+

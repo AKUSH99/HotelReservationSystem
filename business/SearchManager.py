@@ -95,7 +95,6 @@ class SearchManager:
         result = self.__session.execute(query).scalars().all()
         return result
 
-
 if __name__ == "__main__":
     sm = SearchManager("../data/database.db")
     hotels = sm.get_all_hotels()
@@ -206,3 +205,4 @@ if __name__ == "__main__":
                 room["Total Price"]
             ))
     # Hinweis: Schritte wiederholen, um verschiedene Hotels und Zeiträume zu prüfen.
+
