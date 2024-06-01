@@ -1,109 +1,127 @@
+import sys
+from pathlib import Path
+
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.exc import IntegrityError
-from pathlib import Path
-from data_models.models import *
+
 from data_access.data_base import init_db
-import csv
+from data_models.models import Login, Role, RegisteredGuest, Address
 
 
-class UserManager:
-    def __init__(self, database_file):
-        database_path = Path(database_file)
-        if not database_path.is_file():
-            init_db(database_file, generate_example_data=True)
-        self.__engine = create_engine(f"sqlite:///{database_file}", echo=False)
-        self.__session = scoped_session(sessionmaker(bind=self.__engine))
+class UserManager(object):
+    def __init__(self):
+        self._max_attempts = 3
+        self._current_login = None
+        self._attempts_left = self._max_attempts
+        self._session = Session()
 
-    def user_exists(self, username):
-        # Prüft, ob ein Benutzername bereits in der Datenbank existiert
-        return self.__session.query(Login).filter_by(username=username).first() is not None
+    def login(self, username, password):
+        self._attempts_left -= 1
+        if self._attempts_left >= 0:
+            if self._current_login is None:
+                query = select(Login).where(Login.username == username).where(Login.password == password)
+                result = self._session.execute(query).scalars().one_or_none()
+                self._current_login = result
+                return self._current_login
 
-    def add_new_user(self, firstname, lastname, email, username, password, street, zip, city):
-        if self.user_exists(username):
-            return "Error: Username already exists. Please choose a different username."
+            else:
+                return None
 
-        new_user = RegisteredGuest(
-            firstname=firstname,
-            lastname=lastname,
-            email=email,
-            address=Address(
-                street=street,
-                zip=zip,
-                city=city
-            ),
-            login=Login(
-                username=username,
-                password=password,
-                role=self.__session.query(Role).filter(Role.name == "registered_user").one()
-            )
-        )
+        else:
+            return None
+
+    def logout(self):
+        self._attempts_left = self._max_attempts
+        self._current_login = None
+
+    def register_guest(self, username, password, firstname, lastname, email, street, zip, city):
+        query = select(Role).where(Role.name == "registered_user")
+        role = self._session.execute(query).scalars().one()
         try:
-            self.__session.add(new_user)
-            self.__session.commit()
-            return f"User {new_user.firstname} added as {new_user.login.role.name}."
-        except IntegrityError as e:
-            self.__session.rollback()
-            return f"Failed to add user due to database error: {e}"
-
-    def update_user(self, firstname, lastname, email, username, password, street, zip, city):
-        update_user = RegisteredGuest(
-            firstname=firstname,
-            lastname=lastname,
-            email=email,
-            address=Address(
-                street=street,
-                zip=zip,
-                city=city
-            ),
-            login=Login(
-                username=username,
-                password=password,
-                role=self.__session.query(Role).filter(Role.name == "registered_user").one()
+            registered_guest = RegisteredGuest(
+                firstname=firstname,
+                lastname=lastname,
+                email=email,
+                address=Address(street=street, zip=zip, city=city),
+                login=Login(username=username, password=password, role=role)
             )
-        )
-        if not user:
-            return "User not found."
-        self.session.update(user)
-        self.session.commit()
-            return f"User {username} updated."
+            self._session.add(registered_guest)
+            self._session.commit()
+        except Exception as e:
+            self._session.rollback()
+            raise e
+
+    def create_admin(self, username, password):
+        query = select(Role).where(Role.name == "administrator")
+        role = self._session.execute(query).scalars().one()
+        try:
+            admin = Login(username=username, password=password, role=role)
+            self._session.add(admin)
+            self._session.commit()
+        except Exception as e:
+            self._session.rollback()
+            raise e
+
+    def get_current_login(self):
+        return self._current_login
+
+    def has_attempts_left(self):
+        return self._attempts_left > 0
 
 
-def get_user_by_username(self, username):
-        # Holt einen Benutzer anhand des Benutzernamens über die Login-Tabelle
-        return self.__session.query(RegisteredGuest).join(Login).filter(Login.username == username).first()
+if __name__ == '__main__':
+    db_file = "../data/test.db"
+    database_path = Path(db_file)
+    if not database_path.is_file():
+        init_db(db_file, generate_example_data=True)
+    Session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
+    manager = UserManager()
 
-    def authenticate_user(self, username, password):
-        # Authentifiziert einen Benutzer
-        user = self.__session.query(Login).filter_by(username=username, password=password).first()
-        if user:
-            return self.__session.query(RegisteredGuest).filter_by(id=user.guest_id).first()
-        return None
+    print("USERSTORY: Login")
+    while manager.has_attempts_left():
+        username = input("Enter your username: ")
+        password = input("Enter your password: ")
 
-    def save_user_details_to_csv(self, user):
-        # Speichert die Benutzerdetails in einer CSV-Datei
-        headers = ["Firstname", "Lastname", "Email", "Username", "City", "Street", "Zip"]
-        user_data = [user.firstname, user.lastname, user.email, user.login.username, user.address.city,
-                     user.address.street, user.address.zip]
+        if manager.login(username, password):
+            print("Login successful!")
+            break
+        else:
+            print("Login failed! Try again!")
 
-        with open('user_details.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(headers)
-            writer.writerow(user_data)
+    if manager.get_current_login():
+        print(f"Welcome {manager.get_current_login().username}")
+    else:
+        print("No attempts left, program is closed!")
+        sys.exit(1)
 
+    manager.logout()
+    print("Goodbye!")
+    print(manager.get_current_login())
 
-if __name__ == "__main__":
-    DB_FILE = '../data/database1.db'
-    user_manager = UserManager(DB_FILE)
-    print("Adding a new user...")
-    firstname = input("Vorname: ")
-    lastname = input("Nachname: ")
-    email = input("Email: ")
-    username = input("Benutzername: ")
-    password = input("Passwort: ")
-    street = input("Straße: ")
-    zip_code = input("Postleitzahl: ")
-    city = input("Stadt: ")
+    print("USERSTORY: Register Guest")
+    username = input("Enter your username: ")
+    password = input("Enter your password: ")
+    firstname = input("Enter your fristname: ")
+    lastname = input("Enter your lastname: ")
+    email = input("Enter your email: ")
+    street = input("Enter your street: ")
+    zip = input("Enter your zip: ")
+    city = input("Enter your city: ")
 
-    message = user_manager.add_new_user(firstname, lastname, email, username, password, street, zip_code, city)
-    print(message)
+    manager.register_guest(username, password, firstname, lastname, email, street, zip, city)
+    print("USERSTORY: Login")
+    while manager.has_attempts_left():
+        username = input("Enter your username: ")
+        password = input("Enter your password: ")
+
+        if manager.login(username, password):
+            print("Login successful!")
+            break
+        else:
+            print("Login failed! Try again!")
+
+    if manager.get_current_login():
+        print(f"Welcome {manager.get_current_login().username}")
+    else:
+        print("No attempts left, program is closed!")
+        sys.exit(1)
