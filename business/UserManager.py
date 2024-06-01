@@ -46,7 +46,60 @@ class UserManager:
             self.__session.rollback()
             return f"Failed to add user due to database error: {e}"
 
-    def get_user_by_username(self, username):
+    def update_user(self, firstname, lastname, email, username, password, street, zip, city):
+        update_user = RegisteredGuest(
+            firstname=firstname,
+            lastname=lastname,
+            email=email,
+            address=Address(
+                street=street,
+                zip=zip,
+                city=city
+            ),
+            login=Login(
+                username=username,
+                password=password,
+                role=self.__session.query(Role).filter(Role.name == "registered_user").one()
+            )
+        )
+        if not user:
+            return "User not found."
+        self.session.update(user)
+        self.session.commit()
+            return f"User {username} updated."
+
+
+def deleted_user(self, firstname, lastname, email, username, password, street, zip, city):
+    deleted_user = RegisteredGuest(
+        firstname=firstname,
+        lastname=lastname,
+        email=email,
+        address=Address(
+            street=street,
+            zip=zip,
+            city=city
+        ),
+        login=Login(
+            username=username,
+            password=password,
+            role=self.__session.query(Role).filter(Role.name == "deleted_user").one()
+        )
+    )
+    if not user:
+        return "User not found."
+    self.session.deleted(user)
+    self.session.commit()
+        return f"User {username} deleted."
+
+
+def login(self, username, password):
+    user = self.session.query(User).filter_by(username=username).first()
+    if user and user.password == password:
+        return f"Login successful for {username}."
+    else:
+        return "Invalid username or password."
+
+def get_user_by_username(self, username):
         # Holt einen Benutzer anhand des Benutzernamens über die Login-Tabelle
         return self.__session.query(RegisteredGuest).join(Login).filter(Login.username == username).first()
 
