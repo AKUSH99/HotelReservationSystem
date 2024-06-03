@@ -5,10 +5,11 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from business.ReservationManager import ReservationManager
+#from business.ReservationManager import ReservationManager
 from data_access.data_base import init_db
 from business.UserManager import UserManager
 #from business.SearchManager import SearchManager
+from ui.RegistrationUI import RegistrationUI
 
 class AdminMenu():
     def __init__(self, main_menu):
@@ -116,6 +117,7 @@ if __name__ == '__main__':
     user_manager = UserManager(session)
     #reservation_manager = ReservationManager(session)
     #search_manager = SearchManager(session)
+    registration_ui = RegistrationUI()
 
 
     main_menu = MainMenu()
