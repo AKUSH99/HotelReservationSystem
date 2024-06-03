@@ -5,15 +5,15 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from data_access.data_base import init_db
-from data_models.models import Login, Role, RegisteredGuest, Address
+from data_models.models import Login, Role, RegisteredGuest, Address, Guest
 
 
 class UserManager(object):
-    def __init__(self):
+    def __init__(self, session):
         self._max_attempts = 3
         self._current_login = None
         self._attempts_left = self._max_attempts
-        self._session = Session()
+        self._session = session
 
     def login(self, username, password):
         self._attempts_left -= 1
@@ -50,6 +50,11 @@ class UserManager(object):
         except Exception as e:
             self._session.rollback()
             raise e
+
+    def get_guest_of(self, login:login):
+        query = select(RegisteredGuest).where(RegisteredGuest.login == login)
+        registered_guest = self._session.execute(query).scalars().one_or_none()
+        return registered_guest
 
     def create_admin(self, username, password):
         query = select(Role).where(Role.name == "administrator")
