@@ -1,6 +1,6 @@
+# ReservationManager.py
 from sqlalchemy import create_engine, select, and_, or_
 from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import csv
 import re
@@ -108,9 +108,11 @@ class ReservationManager:
 
 if __name__ == "__main__":
     from business.SearchManager import SearchManager
+    from business.UserManager import UserManager
 
     reservation_manager = ReservationManager('../data/database.db')
     search_manager = SearchManager('../data/database.db')
+    user_manager = UserManager(reservation_manager.session)
 
     # Interaktiver Prozess zur Auswahl der Buchungsoption
     print("Welcome! How would you like to proceed?")
@@ -187,9 +189,6 @@ if __name__ == "__main__":
 
     elif choice == "2":
         # Neuer Benutzer (wird in UserManager.py behandelt)
-        from UserManager import UserManager
-
-        user_manager = UserManager('../data/database1.db')
         print("Registration as a new user:")
         firstname = input("Firstname: ")
         lastname = input("Lastname: ")
@@ -207,13 +206,15 @@ if __name__ == "__main__":
         zip_code = input("Zip: ")
         city = input("City: ")
 
-        message = user_manager.add_new_user(firstname, lastname, email, username, password, street, zip_code, city)
-        print(message)
-
-        user = user_manager.get_user_by_username(username)
+        user = user_manager.register_user(username, password, firstname, lastname, email, street, zip_code, city)
         if user:
-            user_manager.save_user_details_to_csv(user)
-            print("Benutzerdetails wurden in user_details.csv gespeichert.")
+            print("User successfully registered.")
+        else:
+            print("User registration failed.")
+
+        user = user_manager.get_guest_of(user.login)
+        if user:
+            print("Benutzerdetails wurden erfolgreich registriert.")
 
         # Fortsetzen mit der Buchung
         guest_id = user.id
