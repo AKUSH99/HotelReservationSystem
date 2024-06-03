@@ -107,7 +107,7 @@ class ReservationManager:
 
 
 if __name__ == "__main__":
-    from SearchManager import (SearchManager)
+    from business.SearchManager import SearchManager
 
     reservation_manager = ReservationManager('../data/database.db')
     search_manager = SearchManager('../data/database.db')
