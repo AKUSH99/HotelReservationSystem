@@ -5,7 +5,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from data_access.data_base import init_db
-from data_models.models import Login, Role, RegisteredGuest, Address, Guest
+from data_models.models import Login, Role, RegisteredGuest, Address
 
 
 class UserManager(object):
@@ -73,35 +73,34 @@ class UserManager(object):
     def has_attempts_left(self):
         return self._attempts_left > 0
 
-
 if __name__ == '__main__':
     db_file = "../data/test.db"
     database_path = Path(db_file)
     if not database_path.is_file():
         init_db(db_file, generate_example_data=True)
-    Session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
-    manager = UserManager()
+    session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
+    user_manager = UserManager(session)
 
     print("USERSTORY: Login")
-    while manager.has_attempts_left():
+    while user_manager.has_attempts_left():
         username = input("Enter your username: ")
         password = input("Enter your password: ")
 
-        if manager.login(username, password):
+        if user_manager.login(username, password):
             print("Login successful!")
             break
         else:
             print("Login failed! Try again!")
 
-    if manager.get_current_login():
-        print(f"Welcome {manager.get_current_login().username}")
+    if user_manager.get_current_login():
+        print(f"Welcome {user_manager.get_current_login().username}")
     else:
         print("No attempts left, program is closed!")
         sys.exit(1)
 
-    manager.logout()
+    user_manager.logout()
     print("Goodbye!")
-    print(manager.get_current_login())
+    print(user_manager.get_current_login())
 
     print("USERSTORY: Register Guest")
     username = input("Enter your username: ")
@@ -113,20 +112,21 @@ if __name__ == '__main__':
     zip = input("Enter your zip: ")
     city = input("Enter your city: ")
 
-    manager.register_guest(username, password, firstname, lastname, email, street, zip, city)
+    user_manager.register_guest(username, password, firstname, lastname, email, street, zip, city)
     print("USERSTORY: Login")
-    while manager.has_attempts_left():
+    while user_manager.has_attempts_left():
         username = input("Enter your username: ")
         password = input("Enter your password: ")
 
-        if manager.login(username, password):
+        if user_manager.login(username, password):
             print("Login successful!")
             break
         else:
             print("Login failed! Try again!")
 
-    if manager.get_current_login():
-        print(f"Welcome {manager.get_current_login().username}")
+    if user_manager.get_current_login():
+        print(f"Welcome {user_manager.get_current_login().username}")
     else:
         print("No attempts left, program is closed!")
         sys.exit(1)
+

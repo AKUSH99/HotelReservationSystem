@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from business.ReservationManager import ReservationManager
 from data_access.data_base import init_db
 from business.UserManager import UserManager
+#from business.SearchManager import SearchManager
 
 class AdminMenu():
     def __init__(self, main_menu):
@@ -21,7 +22,7 @@ class AdminMenu():
         match user_in:
             case "1":
                 user_manager.logout()
-                return self._back
+                return self._main_menu
 
 class RegisteredHomeMenu():
 
@@ -62,7 +63,7 @@ class Login():
                     f"Welcome {user_manager.get_guest_of(user_manager.get_current_login()).firstname} {user_manager.get_guest_of(user_manager.get_current_login()).lastname}")
                 return self._registered_home_menu
 
-            elif manager.get_current_login().role.access_level == sys.maxsize:
+            elif user_manager.get_current_login().role.access_level == sys.maxsize:
                 print("You are logged in as Administrator")
             print(f"Welcome {user_manager.get_current_login().username}!")
             return self._admin_menu
@@ -113,7 +114,8 @@ if __name__ == '__main__':
         init_db(db_file, generate_example_data=True)
     session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
     user_manager = UserManager(session)
-    #reservation_manager = ReservationManager(Session)
+    #reservation_manager = ReservationManager(session)
+    #search_manager = SearchManager(session)
 
 
     main_menu = MainMenu()

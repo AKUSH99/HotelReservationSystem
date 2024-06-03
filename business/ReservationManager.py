@@ -7,7 +7,6 @@ import re
 from data_models.models import Booking, Room, Hotel, Guest, RegisteredGuest, Address, Login, Role
 from data_access.data_base import init_db
 from pathlib import Path
-from SearchManager import SearchManager
 
 class ReservationManager:
     def __init__(self, database_file):
@@ -226,14 +225,14 @@ if __name__ == "__main__":
             if reservation_manager.validate_date(start_date):
                 break
             else:
-                print("Ungültiges Datumsformat. Bitte erneut eingeben.")
+                print("Invalid date format. Please enter again.")
 
         while True:
             end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
             if reservation_manager.validate_date(end_date):
                 break
             else:
-                print("Ungültiges Datumsformat. Bitte erneut eingeben.")
+                print("Invalid date format. Please enter again.")
 
         stars = input("Enter stars 1 to 5 (optional): ")
         if stars == "":
@@ -269,9 +268,9 @@ if __name__ == "__main__":
 
     elif choice == "3":
         # Code zum Einloggen in ein bestehendes Konto
-        print("Einloggen in ein bestehendes Konto")
+        print("Log in to an existing account")
         # Hier den Login-Prozess und die Buchung für eingeloggte Benutzer implementieren
         pass
 
     else:
-        print("Ungültige Option. Bitte starten Sie das Programm erneut und wählen Sie eine gültige Option.")
+        print("Invalid option. Please restart the programme and select a valid option.")
