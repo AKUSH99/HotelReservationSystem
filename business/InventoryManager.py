@@ -28,7 +28,13 @@ class InventoryManager:
             session.close()
 
 
-# Beispielaufruf der Methode außerhalb der Klasse
 if __name__ == "__main__":
     inventory_manager = InventoryManager('/mnt/data/database.db')
-    inventory_manager.add_hotel('Beispiel Hotel', 4, 1)
+
+    # Benutzereingaben einholen
+    name = input("Geben Sie den Namen des Hotels ein: ")
+    stars = int(input("Geben Sie die Sternebewertung des Hotels ein (1-5): "))
+    address_id = int(input("Geben Sie die Address-ID ein: "))
+
+    # Hotel mit Benutzereingaben hinzufügen
+    inventory_manager.add_hotel(name, stars, address_id)
