@@ -7,7 +7,7 @@ import re
 from data_models.models import Booking, Room, Hotel, Guest, RegisteredGuest, Address, Login, Role
 from data_access.data_base import init_db
 from pathlib import Path
-
+from SearchManager import SearchManager
 
 class ReservationManager:
     def __init__(self, database_file):
@@ -108,7 +108,7 @@ class ReservationManager:
 
 
 if __name__ == "__main__":
-    from SearchManager import SearchManager
+    from SearchManager import (SearchManager)
 
     reservation_manager = ReservationManager('../data/database.db')
     search_manager = SearchManager('../data/database.db')

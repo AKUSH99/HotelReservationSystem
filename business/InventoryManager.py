@@ -1,4 +1,5 @@
-import sys
+import tkinter as tk
+from tkinter import messagebox
 from pathlib import Path
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -112,38 +113,105 @@ class UserManager(object):
         return False
 
 
+class App:
+    def __init__(self, root, inventory_manager):
+        self.root = root
+        self.inventory_manager = inventory_manager
+        self.user_manager = inventory_manager.user_manager
+
+        self.root.title("Hotel Management System")
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Login Frame
+        self.login_frame = tk.Frame(self.root)
+        self.login_frame.pack(pady=10)
+
+        tk.Label(self.login_frame, text="Username").grid(row=0, column=0, padx=5, pady=5)
+        self.username_entry = tk.Entry(self.login_frame)
+        self.username_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        tk.Label(self.login_frame, text="Password").grid(row=1, column=0, padx=5, pady=5)
+        self.password_entry = tk.Entry(self.login_frame, show="*")
+        self.password_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        self.login_button = tk.Button(self.login_frame, text="Login", command=self.login)
+        self.login_button.grid(row=2, columnspan=2, pady=5)
+
+        # Admin Actions Frame
+        self.admin_frame = tk.Frame(self.root)
+        self.admin_frame.pack(pady=10)
+
+        self.create_admin_button = tk.Button(self.admin_frame, text="Create Admin", command=self.create_admin)
+        self.create_admin_button.grid(row=0, columnspan=2, pady=5)
+
+        self.add_hotel_button = tk.Button(self.admin_frame, text="Add Hotel", command=self.add_hotel)
+        self.add_hotel_button.grid(row=1, columnspan=2, pady=5)
+
+        self.logout_button = tk.Button(self.admin_frame, text="Logout", command=self.logout)
+        self.logout_button.grid(row=2, columnspan=2, pady=5)
+
+        self.admin_frame.pack_forget()  # Hide admin actions initially
+
+    def login(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+
+        if self.user_manager.login(username, password):
+            messagebox.showinfo("Login", "Login successful!")
+            self.login_frame.pack_forget()
+            self.admin_frame.pack(pady=10)
+        else:
+            messagebox.showerror("Login", "Login failed! Try again.")
+
+    def logout(self):
+        self.user_manager.logout()
+        self.admin_frame.pack_forget()
+        self.login_frame.pack(pady=10)
+        messagebox.showinfo("Logout", "Logged out successfully!")
+
+    def create_admin(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        self.user_manager.create_admin(username, password)
+        messagebox.showinfo("Create Admin", f"Administrator '{username}' successfully created.")
+
+    def add_hotel(self):
+        if self.user_manager.is_admin():
+            hotel_window = tk.Toplevel(self.root)
+            hotel_window.title("Add Hotel")
+
+            tk.Label(hotel_window, text="Hotel Name").grid(row=0, column=0, padx=5, pady=5)
+            name_entry = tk.Entry(hotel_window)
+            name_entry.grid(row=0, column=1, padx=5, pady=5)
+
+            tk.Label(hotel_window, text="Stars (1-5)").grid(row=1, column=0, padx=5, pady=5)
+            stars_entry = tk.Entry(hotel_window)
+            stars_entry.grid(row=1, column=1, padx=5, pady=5)
+
+            tk.Label(hotel_window, text="Address ID").grid(row=2, column=0, padx=5, pady=5)
+            address_id_entry = tk.Entry(hotel_window)
+            address_id_entry.grid(row=2, column=1, padx=5, pady=5)
+
+            def submit_hotel():
+                name = name_entry.get()
+                stars = int(stars_entry.get())
+                address_id = int(address_id_entry.get())
+                self.inventory_manager.add_hotel(name, stars, address_id)
+                hotel_window.destroy()
+
+            submit_button = tk.Button(hotel_window, text="Submit", command=submit_hotel)
+            submit_button.grid(row=3, columnspan=2, pady=10)
+
+        else:
+            messagebox.showerror("Error", "Only administrators can add new hotels.")
+
+
 if __name__ == "__main__":
     db_file = "/mnt/data/database.db"
     inventory_manager = InventoryManager(db_file)
 
-    # Example: Logging in as admin
-    print("USERSTORY: Login as admin")
-    while inventory_manager.user_manager.has_attempts_left():
-        username = input("Enter your username: ")
-        password = input("Enter your password: ")
-
-        if inventory_manager.user_manager.login(username, password):
-            print("Login successful!")
-            break
-        else:
-            print("Login failed! Try again!")
-
-    if inventory_manager.user_manager.get_current_login():
-        print(f"Welcome {inventory_manager.user_manager.get_current_login().username}")
-    else:
-        print("No attempts left, program is closed!")
-        sys.exit(1)
-
-    # Example: Adding a hotel
-    if inventory_manager.user_manager.is_admin():
-        print("USERSTORY: Add a Hotel")
-        name = input("Enter the hotel name: ")
-        stars = int(input("Enter the hotel stars (1-5): "))
-        address_id = int(input("Enter the address ID: "))
-        inventory_manager.add_hotel(name, stars, address_id)
-    else:
-        print("Nur Administratoren können neue Hotels hinzufügen.")
-
-    inventory_manager.user_manager.logout()
-    print("Goodbye!")
-
+    root = tk.Tk()
+    app = App(root, inventory_manager)
+    root.mainloop()
