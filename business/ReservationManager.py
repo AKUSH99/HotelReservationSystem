@@ -114,24 +114,24 @@ if __name__ == "__main__":
     search_manager = SearchManager('../data/database.db')
 
     # Interaktiver Prozess zur Auswahl der Buchungsoption
-    print("Willkommen! Wie möchten Sie fortfahren?")
-    print("1. Als Gast mit minimalen Informationen fortfahren")
-    print("2. Als neuer Benutzer registrieren")
-    print("3. In ein bestehendes Konto einloggen")
+    print("Welcome! How would you like to proceed?")
+    print("1. Proceed as a guest with minimal information")
+    print("2. Register as a new user")
+    print("3. Log in to an existing account")
 
-    choice = input("Bitte wählen Sie eine Option (1/2/3): ")
+    choice = input("Please select an option (1/2/3): ")
 
     if choice == "1":
         # Buchung als Gast
-        firstname = input("Vorname: ")
-        lastname = input("Nachname: ")
+        firstname = input("Firstname: ")
+        lastname = input("Lastname: ")
 
         while True:
             email = input("Email: ")
             if reservation_manager.validate_email(email):
                 break
             else:
-                print("Ungültiges E-Mail-Format. Bitte erneut eingeben.")
+                print("Invalid e-mail format. Please enter again.")
 
         guest_id = reservation_manager.create_guest(firstname, lastname, email)
 
@@ -144,14 +144,14 @@ if __name__ == "__main__":
             if reservation_manager.validate_date(start_date):
                 break
             else:
-                print("Ungültiges Datumsformat. Bitte erneut eingeben.")
+                print("Invalid date format. Please enter again.")
 
         while True:
             end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
             if reservation_manager.validate_date(end_date):
                 break
             else:
-                print("Ungültiges Datumsformat. Bitte erneut eingeben.")
+                print("Invalid date format. Please enter again.")
 
         stars = input("Enter stars 1 to 5 (optional): ")
         if stars == "":
@@ -191,22 +191,22 @@ if __name__ == "__main__":
         from UserManager import UserManager
 
         user_manager = UserManager('../data/database1.db')
-        print("Registrierung als neuer Benutzer:")
-        firstname = input("Vorname: ")
-        lastname = input("Nachname: ")
+        print("Registration as a new user:")
+        firstname = input("Firstname: ")
+        lastname = input("Lastname: ")
 
         while True:
             email = input("Email: ")
             if reservation_manager.validate_email(email):
                 break
             else:
-                print("Ungültiges E-Mail-Format. Bitte erneut eingeben.")
+                print("Invalid e-mail format. Please enter again.")
 
-        username = input("Benutzername: ")
-        password = input("Passwort: ")
-        street = input("Straße: ")
-        zip_code = input("Postleitzahl: ")
-        city = input("Stadt: ")
+        username = input("Username: ")
+        password = input("Password: ")
+        street = input("Street: ")
+        zip_code = input("Zip: ")
+        city = input("City: ")
 
         message = user_manager.add_new_user(firstname, lastname, email, username, password, street, zip_code, city)
         print(message)
