@@ -63,7 +63,7 @@ class SearchManager:
             query = query.where(Hotel.stars == stars)
         return self.__session.execute(query).scalars().all()
 
-    def get_available_rooms_by_hotel(self, hotel_id):
+    def get_rooms_by_hotel(self, hotel_id, max_guest):
         query = select(
             Room.number,
             Room.type,
@@ -71,23 +71,13 @@ class SearchManager:
             Room.description,
             Room.amenities,
             Room.price
-        ).outerjoin(Booking, and_(
-            Room.number == Booking.room_number,
-            Room.hotel_id == hotel_id,
-            Booking.id.isnot(None)
-        )).where(
+        ).where(
             and_(
                 Room.hotel_id == hotel_id,
-                or_(
-                    Booking.id.is_(None),
-                    and_(
-                        Booking.end_date <= start_date,
-                        Booking.start_date >= end_date
-                    )
-                )
+                Room.max_guests >= max_guest
             )
         )
-        available_rooms = self.__session.execute(query).all()
+        rooms = self.__session.execute(query).all()
         return [{
             "Room Number": room[0],
             "Type": room[1],
@@ -95,7 +85,7 @@ class SearchManager:
             "Description": room[3],
             "Amenities": room[4],
             "Price": room[5]
-        } for room in available_rooms]
+        } for room in rooms]
 
     def get_hotel_details(self, hotel_id=None):
         query = select(
@@ -212,6 +202,7 @@ if __name__ == "__main__":
 # haben, die meiner Gästezahl entsprechen (nur 1 Zimmer pro
 # Buchung), entweder mit oder ohne Anzahl der Sterne.
 
+# Schritt 1: Eingabe der Suchkriterien
 city = input("Enter city: ").strip()
 max_guest = int(input("Enter max guests: "))
 stars = input("Enter stars 1 to 5 (optional): ").strip()
@@ -237,17 +228,19 @@ else:
         selected_hotel = hotels[hotel_index]
         print(f"You selected: {selected_hotel.name}")
 
-        # Schritt 4: Anzeige der verfügbaren Zimmer des ausgewählten Hotels
-        available_rooms = sm.get_available_rooms_by_hotel(selected_hotel.id)
-        if not available_rooms:
-            print("No available rooms found for the selected hotel.")
+        # Schritt 4: Anzeige der Zimmer des ausgewählten Hotels, die mindestens Platz für die gewünschte Anzahl an Personen bieten
+        rooms = sm.get_rooms_by_hotel(selected_hotel.id, max_guest)
+        if not rooms:
+            print("No rooms found for the selected hotel that accommodate the desired number of guests.")
         else:
-            print("Available rooms:")
-            for room in available_rooms:
-                print(f"Room Number: {room['Room Number']}, Type: {room['Type']}, Max Guests: {room['Max Guests']}")
+            print("Rooms in the selected hotel that can accommodate at least the desired number of guests:\n")
+            for room in rooms:
+                print(
+                    f"Room Number: {room['Room Number']}, Type: {room['Type']}, Max Guests: {room['Max Guests']}")
                 print(f"Description: {room['Description']}")
                 print(f"Amenities: {room['Amenities']}")
                 print(f"Price per Night: {room['Price']}\n")
+
 # %%
 # # 1.1.4. Ich möchte alle Hotels in einer Stadt durchsuchen,
 # # die während meines Aufenthaltes ("von" (start_date) und "bis" (end_date)) Zimmer für meine Gästezahl zur Verfügung haben,
