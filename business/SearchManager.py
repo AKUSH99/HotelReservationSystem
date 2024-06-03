@@ -179,24 +179,24 @@ if __name__ == "__main__":
 # User Story 1.1.1.
 # Ich möchte alle Hotels in einer Stadt durchsuchen, damit ich
 # das Hotel nach meinem bevorzugten Standort (Stadt) auswählen kann.
-#
-# city = input("Enter city: ")
-# hotel_city = sm.get_hotels_by_city(city)
-# for hotel in hotel_city:
-#     print(hotel)
-# # %%
-# # User Story 1.1.2
-# # Ich möchte alle Hotels in einer Stadt nach der Anzahl der
-# # Sterne durchsuchen.
-#
-# city = str(input("Enter city: "))
-# stars = int(input("Enter stars 1 to 5: "))
-# hotel_stars = sm.get_hotels_by_city_and_stars(city=city, stars=stars)
-# if not hotel_stars and stars == stars:
-#     print("No hotels found with given amount of stars.! ")
-# else:
-#     for hotel in hotel_stars:
-#         print(hotel)
+
+city = input("Enter city: ")
+hotel_city = sm.get_hotels_by_city(city)
+for hotel in hotel_city:
+    print(hotel)
+# %%
+# User Story 1.1.2
+# Ich möchte alle Hotels in einer Stadt nach der Anzahl der
+# Sterne durchsuchen.
+
+city = str(input("Enter city: "))
+stars = int(input("Enter stars 1 to 5: "))
+hotel_stars = sm.get_hotels_by_city_and_stars(city=city, stars=stars)
+if not hotel_stars and stars == stars:
+    print("No hotels found with given amount of stars.! ")
+else:
+    for hotel in hotel_stars:
+        print(hotel)
 # %%
 # 1.1.3. Ich möchte alle Hotels in einer Stadt durchsuchen, die Zimmer
 # haben, die meiner Gästezahl entsprechen (nur 1 Zimmer pro
@@ -241,90 +241,90 @@ else:
                 print(f"Amenities: {room['Amenities']}")
                 print(f"Price per Night: {room['Price']}\n")
 
+
+# 1.1.4. Ich möchte alle Hotels in einer Stadt durchsuchen,
+# die während meines Aufenthaltes ("von" (start_date) und "bis" (end_date)) Zimmer für meine Gästezahl zur Verfügung haben,
+# entweder mit oder ohne Anzahl der Sterne, damit ich nur relevante Ergebnisse sehe.
+
+# Hier setzen Sie die Inputs für die Suche
+city = input("Enter city: ")
+start_date = input("Enter the start date of your stay (YYYY-MM-DD): ")
+end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
+max_guest = int(input("Enter max guests: "))
+stars = input("Enter stars 1 to 5 (optional): ")
+if stars == "":
+    stars = None
+else:
+    stars = int(stars)
+
+# Aufruf der Methode
+hotels = sm.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)
+if not hotels:
+    print("No hotels found for your criteria.")
+else:
+    for hotel in hotels:
+        print(hotel)
+
 # %%
-# # 1.1.4. Ich möchte alle Hotels in einer Stadt durchsuchen,
-# # die während meines Aufenthaltes ("von" (start_date) und "bis" (end_date)) Zimmer für meine Gästezahl zur Verfügung haben,
-# # entweder mit oder ohne Anzahl der Sterne, damit ich nur relevante Ergebnisse sehe.
-#
-# # Hier setzen Sie die Inputs für die Suche
-# city = input("Enter city: ")
-# start_date = input("Enter the start date of your stay (YYYY-MM-DD): ")
-# end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
-# max_guest = int(input("Enter max guests: "))
-# stars = input("Enter stars 1 to 5 (optional): ")
-# if stars == "":
-#     stars = None
-# else:
-#     stars = int(stars)
-#
-# # Aufruf der Methode
-# hotels = sm.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)
-# if not hotels:
-#     print("No hotels found for your criteria.")
-# else:
-#     for hotel in hotels:
-#         print(hotel)
-#
-# # %%
-# # 1.1.5. Ich möchte die folgenden Informationen pro Hotel sehen:
-# # Name, Adresse, Anzahl der Sterne.
-#
-# hotel_id = input("Enter the hotel id you want to search for: ")
-# hotel_details = sm.get_hotel_details(hotel_id=hotel_id)
-#
-# if not hotel_details:
-#     print("No hotels found!")
-# else:
-#     for detail in hotel_details:
-#         print(f"Name: {detail['Name']}, Address: {detail['Address']}, Stars: {detail['Stars']}")
-# # %%
-# # 1.1.6. Ich möchte ein Hotel auswählen, um die Details zu sehen (z.B.
-# # verfügbare Zimmer [siehe 1.2])
-#
-# hotel_id = input("Enter the hotel ID to search for available rooms: ")
-#
-# # Aufrufen der Methode find_available_rooms_no_dates, um alle freien Zimmer zu suchen
-# available_rooms = sm.find_available_rooms_no_dates(hotel_id=int(hotel_id))
-#
-# print("Available rooms for hotel id {}:".format(hotel_id))
-# for room in available_rooms:
-#     print(
-#         "Room Number: {} | Type: {} | Max Guests: {} | Description: {} | Amenities: {} | Price per Night: {} | Total Price for 10 Nights: {}".format(
-#             room["Room Number"],
-#             room["Type"],
-#             room["Max Guests"],
-#             room["Description"],
-#             room["Amenities"],
-#             room["Price per Night"],
-#             room["Total Price"]
-#         ))
-#
-# # %%
-# # 1.2.1. Ich möchte die folgenden Informationen pro Zimmer sehen: Zimmertyp, max. Anzahl der Gäste, Beschreibung, Ausstattung, Preis pro Nacht und Gesamtpreis.
-# # 1.2.2. Ich möchte nur die verfügbaren Zimmer sehen
-#
-# # Beispiel: Eingabe der Daten zur Suche nach verfügbaren Zimmern
-# hotel_id = input("Enter the hotel ID to search for available rooms: ")
-# start_date = input("Enter the start date of your stay (YYYY-MM-DD): ")
-# end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
-#
-# # Aufrufen der Methode find_available_rooms, um freie Zimmer zu suchen
-# available_rooms = sm.find_available_rooms_with_date(hotel_id=int(hotel_id), start_date=start_date, end_date=end_date)
-#
-# if not available_rooms:
-#     print("No available rooms found for the period from {} to {}.".format(start_date, end_date))
-# else:
-#     print("Available rooms for hotel id {}:\n".format(hotel_id))
-#     for room in available_rooms:
-#         print(
-#             "Room Number: {} | Type: {} | Max Guests: {} | Description: {} | Amenities: {} | Price per Night: {} | Total Price for 10 Nights: {}".format(
-#                 room["Room Number"],
-#                 room["Type"],
-#                 room["Max Guests"],
-#                 room["Description"],
-#                 room["Amenities"],
-#                 room["Price per Night"],
-#                 room["Total Price"]
-#             ))
-#         print()
-# # Hinweis: Schritte wiederholen, um verschiedene Hotels und Zeiträume zu prüfen.
+# 1.1.5. Ich möchte die folgenden Informationen pro Hotel sehen:
+# Name, Adresse, Anzahl der Sterne.
+
+hotel_id = input("Enter the hotel id you want to search for: ")
+hotel_details = sm.get_hotel_details(hotel_id=hotel_id)
+
+if not hotel_details:
+    print("No hotels found!")
+else:
+    for detail in hotel_details:
+        print(f"Name: {detail['Name']}, Address: {detail['Address']}, Stars: {detail['Stars']}")
+# %%
+# 1.1.6. Ich möchte ein Hotel auswählen, um die Details zu sehen (z.B.
+# verfügbare Zimmer [siehe 1.2])
+
+hotel_id = input("Enter the hotel ID to search for available rooms: ")
+
+# Aufrufen der Methode find_available_rooms_no_dates, um alle freien Zimmer zu suchen
+available_rooms = sm.find_available_rooms_no_dates(hotel_id=int(hotel_id))
+
+print("Available rooms for hotel id {}:".format(hotel_id))
+for room in available_rooms:
+    print(
+        "Room Number: {} | Type: {} | Max Guests: {} | Description: {} | Amenities: {} | Price per Night: {} | Total Price for 10 Nights: {}".format(
+            room["Room Number"],
+            room["Type"],
+            room["Max Guests"],
+            room["Description"],
+            room["Amenities"],
+            room["Price per Night"],
+            room["Total Price"]
+        ))
+
+# %%
+# 1.2.1. Ich möchte die folgenden Informationen pro Zimmer sehen: Zimmertyp, max. Anzahl der Gäste, Beschreibung, Ausstattung, Preis pro Nacht und Gesamtpreis.
+# 1.2.2. Ich möchte nur die verfügbaren Zimmer sehen
+
+# Beispiel: Eingabe der Daten zur Suche nach verfügbaren Zimmern
+hotel_id = input("Enter the hotel ID to search for available rooms: ")
+start_date = input("Enter the start date of your stay (YYYY-MM-DD): ")
+end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
+
+# Aufrufen der Methode find_available_rooms, um freie Zimmer zu suchen
+available_rooms = sm.find_available_rooms_with_date(hotel_id=int(hotel_id), start_date=start_date, end_date=end_date)
+
+if not available_rooms:
+    print("No available rooms found for the period from {} to {}.".format(start_date, end_date))
+else:
+    print("Available rooms for hotel id {}:\n".format(hotel_id))
+    for room in available_rooms:
+        print(
+            "Room Number: {} | Type: {} | Max Guests: {} | Description: {} | Amenities: {} | Price per Night: {} | Total Price for 10 Nights: {}".format(
+                room["Room Number"],
+                room["Type"],
+                room["Max Guests"],
+                room["Description"],
+                room["Amenities"],
+                room["Price per Night"],
+                room["Total Price"]
+            ))
+        print()
+# Hinweis: Schritte wiederholen, um verschiedene Hotels und Zeiträume zu prüfen.
