@@ -209,7 +209,7 @@ class App:
 
 
 if __name__ == "__main__":
-    db_file = "/mnt/data/database.db"
+    db_file = "../data/database.db"
     inventory_manager = InventoryManager(db_file)
 
     root = tk.Tk()
