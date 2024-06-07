@@ -1,14 +1,12 @@
 import sys
 from pathlib import Path
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select, func, and_, or_
 from sqlalchemy.orm import sessionmaker, scoped_session
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
 from data_models.models import *
 from data_access.data_base import init_db
-from sqlalchemy import select, func, and_, or_
-
 
 class SearchManager:
     def __init__(self, database_file):
@@ -186,6 +184,12 @@ class HotelReservationApp(tk.Tk):
         else:
             for hotel in hotels:
                 self.tree.insert("", "end", values=(hotel.name, hotel.address.city, hotel.stars))
+
+            # Automatically select the first hotel in the list and show its details
+            if self.tree.get_children():
+                first_item = self.tree.get_children()[0]
+                self.tree.selection_set(first_item)
+                self.show_selected_hotel_details(None)
 
     def show_selected_hotel_details(self, event):
         selection = self.tree.selection()

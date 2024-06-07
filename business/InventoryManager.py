@@ -50,10 +50,8 @@ class UserManager(object):
                 result = self._session.execute(query).scalars().one_or_none()
                 self._current_login = result
                 return self._current_login
-
             else:
                 return None
-
         else:
             return None
 
@@ -84,7 +82,6 @@ class UserManager(object):
         return registered_guest
 
     def create_admin(self, username, password):
-        # Check if username already exists
         existing_user = self._session.execute(select(Login).where(Login.username == username)).scalars().one_or_none()
         if existing_user:
             print(f"Fehler: Benutzername '{username}' existiert bereits.")
@@ -131,6 +128,7 @@ class App:
         tk.Label(self.login_frame, text="Username").grid(row=0, column=0, padx=5, pady=5)
         self.username_entry = tk.Entry(self.login_frame)
         self.username_entry.grid(row=0, column=1, padx=5, pady=5)
+        self.username_entry.focus_set()  # Set focus to username entry
 
         tk.Label(self.login_frame, text="Password").grid(row=1, column=0, padx=5, pady=5)
         self.password_entry = tk.Entry(self.login_frame, show="*")
@@ -138,6 +136,9 @@ class App:
 
         self.login_button = tk.Button(self.login_frame, text="Login", command=self.login)
         self.login_button.grid(row=2, columnspan=2, pady=5)
+
+        # Bind Enter key to the login function
+        self.root.bind('<Return>', lambda event: self.login())
 
         # Admin Actions Frame
         self.admin_frame = tk.Frame(self.root)
