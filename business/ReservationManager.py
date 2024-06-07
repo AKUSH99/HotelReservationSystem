@@ -1,496 +1,277 @@
-import tkinter as tk
-from tkinter import messagebox, ttk
-from pathlib import Path
-from sqlalchemy import create_engine, select, update, delete
+# ReservationManager.py
+from sqlalchemy import create_engine, select, and_, or_
 from sqlalchemy.orm import sessionmaker, scoped_session
-
-# Importiere die Modelle (stellen Sie sicher, dass diese korrekt importiert sind)
+from datetime import datetime
+import csv
+import re
+from data_models.models import Booking, Room, Hotel, Guest, RegisteredGuest, Address, Login, Role
 from data_access.data_base import init_db
-from data_models.models import Login, Role, RegisteredGuest, Address, Guest, Hotel, Booking, Room
+from pathlib import Path
 
-
-class InventoryManager:
+class ReservationManager:
     def __init__(self, database_file):
-        database_path = Path(database_file)
-        if not database_path.is_file():
+        # Initialisierung der Datenbankverbindung
+        self.database_path = Path(database_file)
+        if not self.database_path.is_file():
             init_db(database_file, generate_example_data=True)
-        self.__engine = create_engine(f"sqlite:///{database_file}", echo=False)
-        self.__Session = scoped_session(sessionmaker(bind=self.__engine))
-        self.user_manager = UserManager(self.__Session)
+        self.engine = create_engine(f"sqlite:///{database_file}", echo=False)
+        self.session = scoped_session(sessionmaker(bind=self.engine))
 
-    def add_hotel(self, name, stars, address_id):
-        if not self.user_manager.is_admin():
-            print("Nur Administratoren können neue Hotels hinzufügen.")
-            return
-
-        session = self.__Session()
-        try:
-            new_hotel = Hotel(name=name, stars=stars, address_id=address_id)
-            session.add(new_hotel)
-            session.commit()
-            print(f"Hotel '{name}' erfolgreich hinzugefügt.")
-        except Exception as e:
-            session.rollback()
-            print(f"Fehler beim Hinzufügen des Hotels: {e}")
-        finally:
-            session.close()
-
-    def remove_hotel(self, hotel_id):
-        if not self.user_manager.is_admin():
-            print("Nur Administratoren können Hotels entfernen.")
-            return
-
-        session = self.__Session()
-        try:
-            session.execute(delete(Hotel).where(Hotel.id == hotel_id))
-            session.commit()
-            print(f"Hotel mit ID '{hotel_id}' erfolgreich entfernt.")
-        except Exception as e:
-            session.rollback()
-            print(f"Fehler beim Entfernen des Hotels: {e}")
-        finally:
-            session.close()
-
-    def update_hotel_info(self, hotel_id, name=None, stars=None, address_id=None):
-        if not self.user_manager.is_admin():
-            print("Nur Administratoren können Hotelinformationen aktualisieren.")
-            return
-
-        session = self.__Session()
-        try:
-            hotel = session.execute(select(Hotel).where(Hotel.id == hotel_id)).scalars().one_or_none()
-            if hotel:
-                if name:
-                    hotel.name = name
-                if stars:
-                    hotel.stars = stars
-                if address_id:
-                    hotel.address_id = address_id
-                session.commit()
-                print(f"Hotel mit ID '{hotel_id}' erfolgreich aktualisiert.")
-            else:
-                print(f"Hotel mit ID '{hotel_id}' nicht gefunden.")
-        except Exception as e:
-            session.rollback()
-            print(f"Fehler beim Aktualisieren des Hotels: {e}")
-        finally:
-            session.close()
-
-    def list_bookings(self):
-        if not self.user_manager.is_admin():
-            print("Nur Administratoren können Buchungen anzeigen.")
-            return
-
-        session = self.__Session()
-        try:
-            bookings = session.execute(select(Booking)).scalars().all()
-            return bookings
-        except Exception as e:
-            print(f"Fehler beim Abrufen der Buchungen: {e}")
-        finally:
-            session.close()
-
-    def update_booking_info(self, booking_id, **kwargs):
-        if not self.user_manager.is_admin():
-            print("Nur Administratoren können Buchungsinformationen aktualisieren.")
-            return
-
-        session = self.__Session()
-        try:
-            booking = session.execute(select(Booking).where(Booking.id == booking_id)).scalars().one_or_none()
-            if booking:
-                for key, value in kwargs.items():
-                    setattr(booking, key, value)
-                session.commit()
-                print(f"Buchung mit ID '{booking_id}' erfolgreich aktualisiert.")
-            else:
-                print(f"Buchung mit ID '{booking_id}' nicht gefunden.")
-        except Exception as e:
-            session.rollback()
-            print(f"Fehler beim Aktualisieren der Buchung: {e}")
-        finally:
-            session.close()
-
-    def manage_room_availability(self, room_id, is_available):
-        if not self.user_manager.is_admin():
-            print("Nur Administratoren können die Zimmerverfügbarkeit verwalten.")
-            return
-
-        session = self.__Session()
-        try:
-            room = session.execute(select(Room).where(Room.id == room_id)).scalars().one_or_none()
-            if room:
-                room.is_available = is_available
-                session.commit()
-                print(f"Verfügbarkeit des Zimmers mit ID '{room_id}' erfolgreich aktualisiert.")
-            else:
-                print(f"Zimmer mit ID '{room_id}' nicht gefunden.")
-        except Exception as e:
-            session.rollback()
-            print(f"Fehler beim Aktualisieren der Zimmerverfügbarkeit: {e}")
-        finally:
-            session.close()
-
-    def update_room_price(self, room_id, price):
-        if not self.user_manager.is_admin():
-            print("Nur Administratoren können Zimmerpreise aktualisieren.")
-            return
-
-        session = self.__Session()
-        try:
-            room = session.execute(select(Room).where(Room.id == room_id)).scalars().one_or_none()
-            if room:
-                room.price = price
-                session.commit()
-                print(f"Preis des Zimmers mit ID '{room_id}' erfolgreich aktualisiert.")
-            else:
-                print(f"Zimmer mit ID '{room_id}' nicht gefunden.")
-        except Exception as e:
-            session.rollback()
-            print(f"Fehler beim Aktualisieren des Zimmerpreises: {e}")
-        finally:
-            session.close()
-
-
-class UserManager:
-    def __init__(self, session):
-        self._max_attempts = 3
-        self._current_login = None
-        self._attempts_left = self._max_attempts
-        self._session = session
-
-    def login(self, username, password):
-        self._attempts_left -= 1
-        if self._attempts_left >= 0:
-            if self._current_login is None:
-                query = select(Login).where(Login.username == username).where(Login.password == password)
-                result = self._session.execute(query).scalars().one_or_none()
-                self._current_login = result
-                return self._current_login
-            else:
-                return None
-        else:
-            return None
-
-    def logout(self):
-        self._attempts_left = self._max_attempts
-        self._current_login = None
-
-    def register_guest(self, username, password, firstname, lastname, email, street, zip, city):
-        query = select(Role).where(Role.name == "registered_user")
-        role = self._session.execute(query).scalars().one()
-        try:
-            registered_guest = RegisteredGuest(
-                firstname=firstname,
-                lastname=lastname,
-                email=email,
-                address=Address(street=street, zip=zip, city=city),
-                login=Login(username=username, password=password, role=role)
+    def is_room_available(self, room_number, start_date, end_date):
+        # Überprüft, ob das Zimmer im angegebenen Zeitraum verfügbar ist
+        bookings = self.session.query(Booking).filter(
+            and_(
+                Booking.room_number == room_number,
+                or_(
+                    and_(Booking.start_date <= start_date, Booking.end_date >= start_date),
+                    and_(Booking.start_date <= end_date, Booking.end_date >= end_date),
+                    and_(Booking.start_date >= start_date, Booking.end_date <= end_date)
+                )
             )
-            self._session.add(registered_guest)
-            self._session.commit()
-        except Exception as e:
-            self._session.rollback()
-            raise e
+        ).all()
+        return len(bookings) == 0
 
-    def get_guest_of(self, login: Login):
-        query = select(RegisteredGuest).where(RegisteredGuest.login == login)
-        registered_guest = self._session.execute(query).scalars().one_or_none()
-        return registered_guest
+    def create_booking(self, room_hotel_id, room_number, guest_id, number_of_guests, start_date, end_date, comment=''):
+        # User Story 1.3: Erstellt eine Buchung, wenn das Zimmer verfügbar ist
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        if self.is_room_available(room_number, start_date, end_date):
+            new_booking = Booking(
+                room_hotel_id=room_hotel_id,
+                room_number=room_number,
+                guest_id=guest_id,
+                number_of_guests=number_of_guests,
+                start_date=start_date,
+                end_date=end_date,
+                comment=comment
+            )
+            self.session.add(new_booking)
+            self.session.commit()
+            return f"Booking successfully created with ID: {new_booking.id}"
+        else:
+            return "Room is not available for the selected dates."
 
-    def get_current_login(self):
-        return self._current_login
+    def save_booking_details(self, booking):
+        # User Story 1.5: Speichert die Buchungsdetails in einer CSV-Datei
+        if booking:
+            booking_details = [
+                ["booking_id", booking.id],
+                ["room_hotel_id", booking.room_hotel_id],
+                ["room_number", booking.room_number],
+                ["guest_id", booking.guest_id],
+                ["number_of_guests", booking.number_of_guests],
+                ["start_date", booking.start_date.strftime('%Y-%m-%d')],
+                ["end_date", booking.end_date.strftime('%Y-%m-%d')],
+                ["comment", booking.comment]
+            ]
+            file_path = f'booking_{booking.id}_details.csv'
+            with open(file_path, 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerows(booking_details)
+            return f"Booking details saved to CSV file at {file_path}."
+        return "No booking found with the given ID."
 
-    def has_attempts_left(self):
-        return self._attempts_left > 0
+    def get_booking_by_id(self, booking_id):
+        # Methode, um eine Buchung anhand ihrer ID zu holen
+        return self.session.query(Booking).filter_by(id=int(booking_id)).first()
 
-    def is_admin(self):
-        if self._current_login and self._current_login.role.name == "administrator":
+    def create_guest(self, firstname, lastname, email):
+        # Erstellt einen temporären Gast mit einer leeren Adresse
+        empty_address = Address(street='', zip='', city='')
+        self.session.add(empty_address)
+        self.session.flush()  # Stellt sicher, dass die Adresse eine ID bekommt
+        new_guest = Guest(
+            firstname=firstname,
+            lastname=lastname,
+            email=email,
+            address_id=empty_address.id
+        )
+        self.session.add(new_guest)
+        self.session.commit()
+        return new_guest.id
+
+    def validate_email(self, email):
+        # Validiert die E-Mail-Adresse
+        regex = r'^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        if re.match(regex, email):
             return True
         return False
 
-
-class App:
-    def __init__(self, root, inventory_manager):
-        self.root = root
-        self.inventory_manager = inventory_manager
-        self.user_manager = inventory_manager.user_manager
-
-        self.root.title("Hotel Management System")
-
-        self.style = ttk.Style()
-        self.style.theme_use('clam')  # Optionally change the theme to 'clam', 'alt', or another ttk theme
-        self.style.configure('TLabel', padding=5, font=('Arial', 10))
-        self.style.configure('TButton', padding=5, font=('Arial', 10, 'bold'))
-        self.style.configure('TEntry', padding=5, font=('Arial', 10))
-
-        self.create_widgets()
-
-    def create_widgets(self):
-        # Login Frame
-        self.login_frame = ttk.Frame(self.root)
-        self.login_frame.pack(pady=20, padx=20)
-
-        ttk.Label(self.login_frame, text="Username").grid(row=0, column=0, padx=10, pady=10)
-        self.username_entry = ttk.Entry(self.login_frame)
-        self.username_entry.grid(row=0, column=1, padx=10, pady=10)
-        self.username_entry.focus_set()
-
-        ttk.Label(self.login_frame, text="Password").grid(row=1, column=0, padx=10, pady=10)
-        self.password_entry = ttk.Entry(self.login_frame, show="*")
-        self.password_entry.grid(row=1, column=1, padx=10, pady=10)
-
-        self.login_button = ttk.Button(self.login_frame, text="Login", command=self.login)
-        self.login_button.grid(row=2, columnspan=2, pady=20)
-
-        self.root.bind('<Return>', lambda event: self.login())
-
-        # Admin Actions Frame
-        self.admin_frame = ttk.Frame(self.root)
-
-        self.add_hotel_button = ttk.Button(self.admin_frame, text="Add Hotel", command=self.add_hotel)
-        self.add_hotel_button.grid(row=0, columnspan=2, pady=5, padx=5)
-
-        self.remove_hotel_button = ttk.Button(self.admin_frame, text="Remove Hotel", command=self.remove_hotel)
-        self.remove_hotel_button.grid(row=1, columnspan=2, pady=5, padx=5)
-
-        self.update_hotel_button = ttk.Button(self.admin_frame, text="Update Hotel Info", command=self.update_hotel)
-        self.update_hotel_button.grid(row=2, columnspan=2, pady=5, padx=5)
-
-        self.list_bookings_button = ttk.Button(self.admin_frame, text="List Bookings", command=self.list_bookings)
-        self.list_bookings_button.grid(row=3, columnspan=2, pady=5, padx=5)
-
-        self.update_booking_button = ttk.Button(self.admin_frame, text="Update Booking", command=self.update_booking)
-        self.update_booking_button.grid(row=4, columnspan=2, pady=5, padx=5)
-
-        self.manage_room_availability_button = ttk.Button(self.admin_frame, text="Manage Room Availability", command=self.manage_room_availability)
-        self.manage_room_availability_button.grid(row=5, columnspan=2, pady=5, padx=5)
-
-        self.update_room_price_button = ttk.Button(self.admin_frame, text="Update Room Price", command=self.update_room_price)
-        self.update_room_price_button.grid(row=6, columnspan=2, pady=5, padx=5)
-
-        self.logout_button = ttk.Button(self.admin_frame, text="Logout", command=self.logout)
-        self.logout_button.grid(row=7, columnspan=2, pady=20, padx=5)
-
-        self.admin_frame.pack_forget()  # Hide admin actions initially
-
-    def login(self):
-        username = self.username_entry.get()
-        password = self.password_entry.get()
-
-        if self.user_manager.login(username, password):
-            messagebox.showinfo("Login", "Login successful!")
-            self.login_frame.pack_forget()
-            self.admin_frame.pack(pady=20, padx=20)
-        else:
-            messagebox.showerror("Login", "Login failed! Try again.")
-
-    def logout(self):
-        self.user_manager.logout()
-        self.admin_frame.pack_forget()
-        self.login_frame.pack(pady=20, padx=20)
-        messagebox.showinfo("Logout", "Logged out successfully!")
-
-    def add_hotel(self):
-        if self.user_manager.is_admin():
-            hotel_window = tk.Toplevel(self.root)
-            hotel_window.title("Add Hotel")
-
-            ttk.Label(hotel_window, text="Hotel Name").grid(row=0, column=0, padx=5, pady=5)
-            name_entry = ttk.Entry(hotel_window)
-            name_entry.grid(row=0, column=1, padx=5, pady=5)
-
-            ttk.Label(hotel_window, text="Stars (1-5)").grid(row=1, column=0, padx=5, pady=5)
-            stars_entry = ttk.Entry(hotel_window)
-            stars_entry.grid(row=1, column=1, padx=5, pady=5)
-
-            ttk.Label(hotel_window, text="Address ID").grid(row=2, column=0, padx=5, pady=5)
-            address_id_entry = ttk.Entry(hotel_window)
-            address_id_entry.grid(row=2, column=1, padx=5, pady=5)
-
-            def submit_hotel():
-                name = name_entry.get()
-                stars = int(stars_entry.get())
-                address_id = int(address_id_entry.get())
-                self.inventory_manager.add_hotel(name, stars, address_id)
-                hotel_window.destroy()
-
-            submit_button = ttk.Button(hotel_window, text="Submit", command=submit_hotel)
-            submit_button.grid(row=3, columnspan=2, pady=10)
-
-        else:
-            messagebox.showerror("Error", "Only administrators can add new hotels.")
-
-    def remove_hotel(self):
-        if self.user_manager.is_admin():
-            hotel_window = tk.Toplevel(self.root)
-            hotel_window.title("Remove Hotel")
-
-            ttk.Label(hotel_window, text="Hotel ID").grid(row=0, column=0, padx=5, pady=5)
-            hotel_id_entry = ttk.Entry(hotel_window)
-            hotel_id_entry.grid(row=0, column=1, padx=5, pady=5)
-
-            def submit_removal():
-                hotel_id = int(hotel_id_entry.get())
-                self.inventory_manager.remove_hotel(hotel_id)
-                hotel_window.destroy()
-
-            submit_button = ttk.Button(hotel_window, text="Submit", command=submit_removal)
-            submit_button.grid(row=1, columnspan=2, pady=10)
-
-        else:
-            messagebox.showerror("Error", "Only administrators can remove hotels.")
-
-    def update_hotel(self):
-        if self.user_manager.is_admin():
-            hotel_window = tk.Toplevel(self.root)
-            hotel_window.title("Update Hotel Info")
-
-            ttk.Label(hotel_window, text="Hotel ID").grid(row=0, column=0, padx=5, pady=5)
-            hotel_id_entry = ttk.Entry(hotel_window)
-            hotel_id_entry.grid(row=0, column=1, padx=5, pady=5)
-
-            ttk.Label(hotel_window, text="New Name (optional)").grid(row=1, column=0, padx=5, pady=5)
-            name_entry = ttk.Entry(hotel_window)
-            name_entry.grid(row=1, column=1, padx=5, pady=5)
-
-            ttk.Label(hotel_window, text="New Stars (1-5, optional)").grid(row=2, column=0, padx=5, pady=5)
-            stars_entry = ttk.Entry(hotel_window)
-            stars_entry.grid(row=2, column=1, padx=5, pady=5)
-
-            ttk.Label(hotel_window, text="New Address ID (optional)").grid(row=3, column=0, padx=5, pady=5)
-            address_id_entry = ttk.Entry(hotel_window)
-            address_id_entry.grid(row=3, column=1, padx=5, pady=5)
-
-            def submit_update():
-                hotel_id = int(hotel_id_entry.get())
-                name = name_entry.get() if name_entry.get() else None
-                stars = int(stars_entry.get()) if stars_entry.get() else None
-                address_id = int(address_id_entry.get()) if address_id_entry.get() else None
-                self.inventory_manager.update_hotel_info(hotel_id, name=name, stars=stars, address_id=address_id)
-                hotel_window.destroy()
-
-            submit_button = ttk.Button(hotel_window, text="Submit", command=submit_update)
-            submit_button.grid(row=4, columnspan=2, pady=10)
-
-        else:
-            messagebox.showerror("Error", "Only administrators can update hotel info.")
-
-    def list_bookings(self):
-        if self.user_manager.is_admin():
-            bookings = self.inventory_manager.list_bookings()
-            booking_window = tk.Toplevel(self.root)
-            booking_window.title("Bookings")
-
-            booking_list = ttk.Treeview(booking_window, columns=("ID", "Guest ID", "Room ID", "Date", "Status"), show='headings')
-            booking_list.heading("ID", text="Booking ID")
-            booking_list.heading("Guest ID", text="Guest ID")
-            booking_list.heading("Room ID", text="Room ID")
-            booking_list.heading("Date", text="Date")
-            booking_list.heading("Status", text="Status")
-
-            for booking in bookings:
-                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_id, booking.date, booking.status))
-
-            booking_list.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
-
-        else:
-            messagebox.showerror("Error", "Only administrators can view bookings.")
-
-    def update_booking(self):
-        if self.user_manager.is_admin():
-            booking_window = tk.Toplevel(self.root)
-            booking_window.title("Update Booking")
-
-            ttk.Label(booking_window, text="Booking ID").grid(row=0, column=0, padx=5, pady=5)
-            booking_id_entry = ttk.Entry(booking_window)
-            booking_id_entry.grid(row=0, column=1, padx=5, pady=5)
-
-            ttk.Label(booking_window, text="New Guest ID (optional)").grid(row=1, column=0, padx=5, pady=5)
-            guest_id_entry = ttk.Entry(booking_window)
-            guest_id_entry.grid(row=1, column=1, padx=5, pady=5)
-
-            ttk.Label(booking_window, text="New Room ID (optional)").grid(row=2, column=0, padx=5, pady=5)
-            room_id_entry = ttk.Entry(booking_window)
-            room_id_entry.grid(row=2, column=1, padx=5, pady=5)
-
-            ttk.Label(booking_window, text="New Status (optional)").grid(row=3, column=0, padx=5, pady=5)
-            status_entry = ttk.Entry(booking_window)
-            status_entry.grid(row=3, column=1, padx=5, pady=5)
-
-            def submit_update():
-                booking_id = int(booking_id_entry.get())
-                updates = {}
-                if guest_id_entry.get():
-                    updates['guest_id'] = int(guest_id_entry.get())
-                if room_id_entry.get():
-                    updates['room_id'] = int(room_id_entry.get())
-                if status_entry.get():
-                    updates['status'] = status_entry.get()
-                self.inventory_manager.update_booking_info(booking_id, **updates)
-                booking_window.destroy()
-
-            submit_button = ttk.Button(booking_window, text="Submit", command=submit_update)
-            submit_button.grid(row=4, columnspan=2, pady=10)
-
-        else:
-            messagebox.showerror("Error", "Only administrators can update bookings.")
-
-    def manage_room_availability(self):
-        if self.user_manager.is_admin():
-            room_window = tk.Toplevel(self.root)
-            room_window.title("Manage Room Availability")
-
-            ttk.Label(room_window, text="Room ID").grid(row=0, column=0, padx=5, pady=5)
-            room_id_entry = ttk.Entry(room_window)
-            room_id_entry.grid(row=0, column=1, padx=5, pady=5)
-
-            ttk.Label(room_window, text="Is Available (True/False)").grid(row=1, column=0, padx=5, pady=5)
-            is_available_entry = ttk.Entry(room_window)
-            is_available_entry.grid(row=1, column=1, padx=5, pady=5)
-
-            def submit_availability():
-                room_id = int(room_id_entry.get())
-                is_available = is_available_entry.get().lower() == 'true'
-                self.inventory_manager.manage_room_availability(room_id, is_available)
-                room_window.destroy()
-
-            submit_button = ttk.Button(room_window, text="Submit", command=submit_availability)
-            submit_button.grid(row=2, columnspan=2, pady=10)
-
-        else:
-            messagebox.showerror("Error", "Only administrators can manage room availability.")
-
-    def update_room_price(self):
-        if self.user_manager.is_admin():
-            price_window = tk.Toplevel(self.root)
-            price_window.title("Update Room Price")
-
-            ttk.Label(price_window, text="Room ID").grid(row=0, column=0, padx=5, pady=5)
-            room_id_entry = ttk.Entry(price_window)
-            room_id_entry.grid(row=0, column=1, padx=5, pady=5)
-
-            ttk.Label(price_window, text="New Price").grid(row=1, column=0, padx=5, pady=5)
-            price_entry = ttk.Entry(price_window)
-            price_entry.grid(row=1, column=1, padx=5, pady=5)
-
-            def submit_price():
-                room_id = int(room_id_entry.get())
-                price = float(price_entry.get())
-                self.inventory_manager.update_room_price(room_id, price)
-                price_window.destroy()
-
-            submit_button = ttk.Button(price_window, text="Submit", command=submit_price)
-            submit_button.grid(row=2, columnspan=2, pady=10)
-
-        else:
-            messagebox.showerror("Error", "Only administrators can update room prices.")
+    def validate_date(self, date_text):
+        # Validiert das Datumsformat
+        try:
+            datetime.strptime(date_text, '%Y-%m-%d')
+            return True
+        except ValueError:
+            return False
 
 
 if __name__ == "__main__":
-    db_file = "/mnt/data/database.db"
-    inventory_manager = InventoryManager(db_file)
+    from business.SearchManager import SearchManager
+    from business.UserManager import UserManager
 
-    root = tk.Tk()
-    app = App(root, inventory_manager)
-    root.mainloop()
+    reservation_manager = ReservationManager('../data/database.db')
+    search_manager = SearchManager('../data/database.db')
+    user_manager = UserManager(reservation_manager.session)
+
+    # Interaktiver Prozess zur Auswahl der Buchungsoption
+    print("Welcome! How would you like to proceed?")
+    print("1. Proceed as a guest with minimal information")
+    print("2. Register as a new user")
+    print("3. Log in to an existing account")
+
+    choice = input("Please select an option (1/2/3): ")
+
+    if choice == "1":
+        # Buchung als Gast
+        firstname = input("Firstname: ")
+        lastname = input("Lastname: ")
+
+        while True:
+            email = input("Email: ")
+            if reservation_manager.validate_email(email):
+                break
+            else:
+                print("Invalid e-mail format. Please enter again.")
+
+        guest_id = reservation_manager.create_guest(firstname, lastname, email)
+
+        # Fortsetzen mit der Buchung
+        city = input("Enter city for hotel: ")
+        max_guest = int(input("Enter max guests: "))
+
+        while True:
+            start_date = input("Enter the start date of your stay (YYYY-MM-DD): ")
+            if reservation_manager.validate_date(start_date):
+                break
+            else:
+                print("Invalid date format. Please enter again.")
+
+        while True:
+            end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
+            if reservation_manager.validate_date(end_date):
+                break
+            else:
+                print("Invalid date format. Please enter again.")
+
+        stars = input("Enter stars 1 to 5 (optional): ")
+        if stars == "":
+            stars = None
+        else:
+            stars = int(stars)
+
+        # Hier wird die Methode zum Suchen von Hotels aufgerufen
+        hotels = search_manager.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)
+        if not hotels:
+            print("No hotels found for your criteria.")
+        else:
+            for hotel in hotels:
+                print(hotel)
+            room_hotel_id = int(input("Enter hotel id: "))
+            room_number = input("Enter room number: ")
+
+            result = reservation_manager.create_booking(
+                room_hotel_id=room_hotel_id,
+                room_number=room_number,
+                guest_id=guest_id,
+                number_of_guests=max_guest,
+                start_date=start_date,
+                end_date=end_date,
+                comment='Booking as guest'
+            )
+            print(result)
+
+            if "successfully" in result:
+                booking_id = result.split()[-1]
+                booking = reservation_manager.get_booking_by_id(booking_id)
+                save_result = reservation_manager.save_booking_details(booking)
+                print(save_result)
+
+    elif choice == "2":
+        # Neuer Benutzer (wird in UserManager.py behandelt)
+        print("Registration as a new user:")
+        firstname = input("Firstname: ")
+        lastname = input("Lastname: ")
+
+        while True:
+            email = input("Email: ")
+            if reservation_manager.validate_email(email):
+                break
+            else:
+                print("Invalid e-mail format. Please enter again.")
+
+        username = input("Username: ")
+        password = input("Password: ")
+        street = input("Street: ")
+        zip_code = input("Zip: ")
+        city = input("City: ")
+
+        user = user_manager.register_user(username, password, firstname, lastname, email, street, zip_code, city)
+        if user:
+            print("User successfully registered.")
+        else:
+            print("User registration failed.")
+
+        user = user_manager.get_guest_of(user.login)
+        if user:
+            print("Benutzerdetails wurden erfolgreich registriert.")
+
+        # Fortsetzen mit der Buchung
+        guest_id = user.id
+        city = input("Enter city for hotel: ")
+        max_guest = int(input("Enter max guests: "))
+
+        while True:
+            start_date = input("Enter the start date of your stay (YYYY-MM-DD): ")
+            if reservation_manager.validate_date(start_date):
+                break
+            else:
+                print("Invalid date format. Please enter again.")
+
+        while True:
+            end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
+            if reservation_manager.validate_date(end_date):
+                break
+            else:
+                print("Invalid date format. Please enter again.")
+
+        stars = input("Enter stars 1 to 5 (optional): ")
+        if stars == "":
+            stars = None
+        else:
+            stars = int(stars)
+
+        hotels = search_manager.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)
+        if not hotels:
+            print("No hotels found for your criteria.")
+        else:
+            for hotel in hotels:
+                print(hotel)
+            room_hotel_id = int(input("Enter hotel id: "))
+            room_number = input("Enter room number: ")
+
+            result = reservation_manager.create_booking(
+                room_hotel_id=room_hotel_id,
+                room_number=room_number,
+                guest_id=guest_id,
+                number_of_guests=max_guest,
+                start_date=start_date,
+                end_date=end_date,
+                comment='Booking as new registered user'
+            )
+            print(result)
+
+            if "successfully" in result:
+                booking_id = result.split()[-1]
+                booking = reservation_manager.get_booking_by_id(booking_id)
+                save_result = reservation_manager.save_booking_details(booking)
+                print(save_result)
+
+    elif choice == "3":
+        # Code zum Einloggen in ein bestehendes Konto
+        print("Log in to an existing account")
+        # Hier den Login-Prozess und die Buchung für eingeloggte Benutzer implementieren
+        pass
+
+    else:
+        print("Invalid option. Please restart the programme and select a valid option.")

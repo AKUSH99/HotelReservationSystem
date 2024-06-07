@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 from pathlib import Path
 from sqlalchemy import create_engine, select, update, delete
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -218,54 +218,59 @@ class App:
 
         self.root.title("Hotel Management System")
 
+        self.style = ttk.Style()
+        self.style.theme_use('clam')  # Optionally change the theme to 'clam', 'alt', or another ttk theme
+        self.style.configure('TLabel', padding=5, font=('Arial', 10))
+        self.style.configure('TButton', padding=5, font=('Arial', 10, 'bold'))
+        self.style.configure('TEntry', padding=5, font=('Arial', 10))
+
         self.create_widgets()
 
     def create_widgets(self):
         # Login Frame
-        self.login_frame = tk.Frame(self.root)
-        self.login_frame.pack(pady=10)
+        self.login_frame = ttk.Frame(self.root)
+        self.login_frame.pack(pady=20, padx=20)
 
-        tk.Label(self.login_frame, text="Username").grid(row=0, column=0, padx=5, pady=5)
-        self.username_entry = tk.Entry(self.login_frame)
-        self.username_entry.grid(row=0, column=1, padx=5, pady=5)
+        ttk.Label(self.login_frame, text="Username").grid(row=0, column=0, padx=10, pady=10)
+        self.username_entry = ttk.Entry(self.login_frame)
+        self.username_entry.grid(row=0, column=1, padx=10, pady=10)
         self.username_entry.focus_set()
 
-        tk.Label(self.login_frame, text="Password").grid(row=1, column=0, padx=5, pady=5)
-        self.password_entry = tk.Entry(self.login_frame, show="*")
-        self.password_entry.grid(row=1, column=1, padx=5, pady=5)
+        ttk.Label(self.login_frame, text="Password").grid(row=1, column=0, padx=10, pady=10)
+        self.password_entry = ttk.Entry(self.login_frame, show="*")
+        self.password_entry.grid(row=1, column=1, padx=10, pady=10)
 
-        self.login_button = tk.Button(self.login_frame, text="Login", command=self.login)
-        self.login_button.grid(row=2, columnspan=2, pady=5)
+        self.login_button = ttk.Button(self.login_frame, text="Login", command=self.login)
+        self.login_button.grid(row=2, columnspan=2, pady=20)
 
         self.root.bind('<Return>', lambda event: self.login())
 
         # Admin Actions Frame
-        self.admin_frame = tk.Frame(self.root)
-        self.admin_frame.pack(pady=10)
+        self.admin_frame = ttk.Frame(self.root)
 
-        self.add_hotel_button = tk.Button(self.admin_frame, text="Add Hotel", command=self.add_hotel)
-        self.add_hotel_button.grid(row=0, columnspan=2, pady=5)
+        self.add_hotel_button = ttk.Button(self.admin_frame, text="Add Hotel", command=self.add_hotel)
+        self.add_hotel_button.grid(row=0, columnspan=2, pady=5, padx=5)
 
-        self.remove_hotel_button = tk.Button(self.admin_frame, text="Remove Hotel", command=self.remove_hotel)
-        self.remove_hotel_button.grid(row=1, columnspan=2, pady=5)
+        self.remove_hotel_button = ttk.Button(self.admin_frame, text="Remove Hotel", command=self.remove_hotel)
+        self.remove_hotel_button.grid(row=1, columnspan=2, pady=5, padx=5)
 
-        self.update_hotel_button = tk.Button(self.admin_frame, text="Update Hotel Info", command=self.update_hotel)
-        self.update_hotel_button.grid(row=2, columnspan=2, pady=5)
+        self.update_hotel_button = ttk.Button(self.admin_frame, text="Update Hotel Info", command=self.update_hotel)
+        self.update_hotel_button.grid(row=2, columnspan=2, pady=5, padx=5)
 
-        self.list_bookings_button = tk.Button(self.admin_frame, text="List Bookings", command=self.list_bookings)
-        self.list_bookings_button.grid(row=3, columnspan=2, pady=5)
+        self.list_bookings_button = ttk.Button(self.admin_frame, text="List Bookings", command=self.list_bookings)
+        self.list_bookings_button.grid(row=3, columnspan=2, pady=5, padx=5)
 
-        self.update_booking_button = tk.Button(self.admin_frame, text="Update Booking", command=self.update_booking)
-        self.update_booking_button.grid(row=4, columnspan=2, pady=5)
+        self.update_booking_button = ttk.Button(self.admin_frame, text="Update Booking", command=self.update_booking)
+        self.update_booking_button.grid(row=4, columnspan=2, pady=5, padx=5)
 
-        self.manage_room_availability_button = tk.Button(self.admin_frame, text="Manage Room Availability", command=self.manage_room_availability)
-        self.manage_room_availability_button.grid(row=5, columnspan=2, pady=5)
+        self.manage_room_availability_button = ttk.Button(self.admin_frame, text="Manage Room Availability", command=self.manage_room_availability)
+        self.manage_room_availability_button.grid(row=5, columnspan=2, pady=5, padx=5)
 
-        self.update_room_price_button = tk.Button(self.admin_frame, text="Update Room Price", command=self.update_room_price)
-        self.update_room_price_button.grid(row=6, columnspan=2, pady=5)
+        self.update_room_price_button = ttk.Button(self.admin_frame, text="Update Room Price", command=self.update_room_price)
+        self.update_room_price_button.grid(row=6, columnspan=2, pady=5, padx=5)
 
-        self.logout_button = tk.Button(self.admin_frame, text="Logout", command=self.logout)
-        self.logout_button.grid(row=7, columnspan=2, pady=5)
+        self.logout_button = ttk.Button(self.admin_frame, text="Logout", command=self.logout)
+        self.logout_button.grid(row=7, columnspan=2, pady=20, padx=5)
 
         self.admin_frame.pack_forget()  # Hide admin actions initially
 
@@ -276,14 +281,14 @@ class App:
         if self.user_manager.login(username, password):
             messagebox.showinfo("Login", "Login successful!")
             self.login_frame.pack_forget()
-            self.admin_frame.pack(pady=10)
+            self.admin_frame.pack(pady=20, padx=20)
         else:
             messagebox.showerror("Login", "Login failed! Try again.")
 
     def logout(self):
         self.user_manager.logout()
         self.admin_frame.pack_forget()
-        self.login_frame.pack(pady=10)
+        self.login_frame.pack(pady=20, padx=20)
         messagebox.showinfo("Logout", "Logged out successfully!")
 
     def add_hotel(self):
@@ -291,16 +296,16 @@ class App:
             hotel_window = tk.Toplevel(self.root)
             hotel_window.title("Add Hotel")
 
-            tk.Label(hotel_window, text="Hotel Name").grid(row=0, column=0, padx=5, pady=5)
-            name_entry = tk.Entry(hotel_window)
+            ttk.Label(hotel_window, text="Hotel Name").grid(row=0, column=0, padx=5, pady=5)
+            name_entry = ttk.Entry(hotel_window)
             name_entry.grid(row=0, column=1, padx=5, pady=5)
 
-            tk.Label(hotel_window, text="Stars (1-5)").grid(row=1, column=0, padx=5, pady=5)
-            stars_entry = tk.Entry(hotel_window)
+            ttk.Label(hotel_window, text="Stars (1-5)").grid(row=1, column=0, padx=5, pady=5)
+            stars_entry = ttk.Entry(hotel_window)
             stars_entry.grid(row=1, column=1, padx=5, pady=5)
 
-            tk.Label(hotel_window, text="Address ID").grid(row=2, column=0, padx=5, pady=5)
-            address_id_entry = tk.Entry(hotel_window)
+            ttk.Label(hotel_window, text="Address ID").grid(row=2, column=0, padx=5, pady=5)
+            address_id_entry = ttk.Entry(hotel_window)
             address_id_entry.grid(row=2, column=1, padx=5, pady=5)
 
             def submit_hotel():
@@ -310,7 +315,7 @@ class App:
                 self.inventory_manager.add_hotel(name, stars, address_id)
                 hotel_window.destroy()
 
-            submit_button = tk.Button(hotel_window, text="Submit", command=submit_hotel)
+            submit_button = ttk.Button(hotel_window, text="Submit", command=submit_hotel)
             submit_button.grid(row=3, columnspan=2, pady=10)
 
         else:
@@ -321,8 +326,8 @@ class App:
             hotel_window = tk.Toplevel(self.root)
             hotel_window.title("Remove Hotel")
 
-            tk.Label(hotel_window, text="Hotel ID").grid(row=0, column=0, padx=5, pady=5)
-            hotel_id_entry = tk.Entry(hotel_window)
+            ttk.Label(hotel_window, text="Hotel ID").grid(row=0, column=0, padx=5, pady=5)
+            hotel_id_entry = ttk.Entry(hotel_window)
             hotel_id_entry.grid(row=0, column=1, padx=5, pady=5)
 
             def submit_removal():
@@ -330,7 +335,7 @@ class App:
                 self.inventory_manager.remove_hotel(hotel_id)
                 hotel_window.destroy()
 
-            submit_button = tk.Button(hotel_window, text="Submit", command=submit_removal)
+            submit_button = ttk.Button(hotel_window, text="Submit", command=submit_removal)
             submit_button.grid(row=1, columnspan=2, pady=10)
 
         else:
@@ -341,20 +346,20 @@ class App:
             hotel_window = tk.Toplevel(self.root)
             hotel_window.title("Update Hotel Info")
 
-            tk.Label(hotel_window, text="Hotel ID").grid(row=0, column=0, padx=5, pady=5)
-            hotel_id_entry = tk.Entry(hotel_window)
+            ttk.Label(hotel_window, text="Hotel ID").grid(row=0, column=0, padx=5, pady=5)
+            hotel_id_entry = ttk.Entry(hotel_window)
             hotel_id_entry.grid(row=0, column=1, padx=5, pady=5)
 
-            tk.Label(hotel_window, text="New Name (optional)").grid(row=1, column=0, padx=5, pady=5)
-            name_entry = tk.Entry(hotel_window)
+            ttk.Label(hotel_window, text="New Name (optional)").grid(row=1, column=0, padx=5, pady=5)
+            name_entry = ttk.Entry(hotel_window)
             name_entry.grid(row=1, column=1, padx=5, pady=5)
 
-            tk.Label(hotel_window, text="New Stars (1-5, optional)").grid(row=2, column=0, padx=5, pady=5)
-            stars_entry = tk.Entry(hotel_window)
+            ttk.Label(hotel_window, text="New Stars (1-5, optional)").grid(row=2, column=0, padx=5, pady=5)
+            stars_entry = ttk.Entry(hotel_window)
             stars_entry.grid(row=2, column=1, padx=5, pady=5)
 
-            tk.Label(hotel_window, text="New Address ID (optional)").grid(row=3, column=0, padx=5, pady=5)
-            address_id_entry = tk.Entry(hotel_window)
+            ttk.Label(hotel_window, text="New Address ID (optional)").grid(row=3, column=0, padx=5, pady=5)
+            address_id_entry = ttk.Entry(hotel_window)
             address_id_entry.grid(row=3, column=1, padx=5, pady=5)
 
             def submit_update():
@@ -365,7 +370,7 @@ class App:
                 self.inventory_manager.update_hotel_info(hotel_id, name=name, stars=stars, address_id=address_id)
                 hotel_window.destroy()
 
-            submit_button = tk.Button(hotel_window, text="Submit", command=submit_update)
+            submit_button = ttk.Button(hotel_window, text="Submit", command=submit_update)
             submit_button.grid(row=4, columnspan=2, pady=10)
 
         else:
@@ -377,8 +382,17 @@ class App:
             booking_window = tk.Toplevel(self.root)
             booking_window.title("Bookings")
 
-            for i, booking in enumerate(bookings):
-                tk.Label(booking_window, text=f"Booking ID: {booking.id}, Guest ID: {booking.guest_id}, Room ID: {booking.room_hotel_id}, start_date: {booking.start_date}, end_date: {booking.end_date}").pack()
+            booking_list = ttk.Treeview(booking_window, columns=("ID", "Guest ID", "Room ID", "Date", "Status"), show='headings')
+            booking_list.heading("ID", text="Booking ID")
+            booking_list.heading("Guest ID", text="Guest ID")
+            booking_list.heading("Room ID", text="Room ID")
+            booking_list.heading("Date", text="Date")
+            booking_list.heading("Status", text="Status")
+
+            for booking in bookings:
+                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_id, booking.date, booking.status))
+
+            booking_list.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
         else:
             messagebox.showerror("Error", "Only administrators can view bookings.")
@@ -388,20 +402,20 @@ class App:
             booking_window = tk.Toplevel(self.root)
             booking_window.title("Update Booking")
 
-            tk.Label(booking_window, text="Booking ID").grid(row=0, column=0, padx=5, pady=5)
-            booking_id_entry = tk.Entry(booking_window)
+            ttk.Label(booking_window, text="Booking ID").grid(row=0, column=0, padx=5, pady=5)
+            booking_id_entry = ttk.Entry(booking_window)
             booking_id_entry.grid(row=0, column=1, padx=5, pady=5)
 
-            tk.Label(booking_window, text="New Guest ID (optional)").grid(row=1, column=0, padx=5, pady=5)
-            guest_id_entry = tk.Entry(booking_window)
+            ttk.Label(booking_window, text="New Guest ID (optional)").grid(row=1, column=0, padx=5, pady=5)
+            guest_id_entry = ttk.Entry(booking_window)
             guest_id_entry.grid(row=1, column=1, padx=5, pady=5)
 
-            tk.Label(booking_window, text="New Room ID (optional)").grid(row=2, column=0, padx=5, pady=5)
-            room_id_entry = tk.Entry(booking_window)
+            ttk.Label(booking_window, text="New Room ID (optional)").grid(row=2, column=0, padx=5, pady=5)
+            room_id_entry = ttk.Entry(booking_window)
             room_id_entry.grid(row=2, column=1, padx=5, pady=5)
 
-            tk.Label(booking_window, text="New Status (optional)").grid(row=3, column=0, padx=5, pady=5)
-            status_entry = tk.Entry(booking_window)
+            ttk.Label(booking_window, text="New Status (optional)").grid(row=3, column=0, padx=5, pady=5)
+            status_entry = ttk.Entry(booking_window)
             status_entry.grid(row=3, column=1, padx=5, pady=5)
 
             def submit_update():
@@ -416,7 +430,7 @@ class App:
                 self.inventory_manager.update_booking_info(booking_id, **updates)
                 booking_window.destroy()
 
-            submit_button = tk.Button(booking_window, text="Submit", command=submit_update)
+            submit_button = ttk.Button(booking_window, text="Submit", command=submit_update)
             submit_button.grid(row=4, columnspan=2, pady=10)
 
         else:
@@ -427,12 +441,12 @@ class App:
             room_window = tk.Toplevel(self.root)
             room_window.title("Manage Room Availability")
 
-            tk.Label(room_window, text="Room ID").grid(row=0, column=0, padx=5, pady=5)
-            room_id_entry = tk.Entry(room_window)
+            ttk.Label(room_window, text="Room ID").grid(row=0, column=0, padx=5, pady=5)
+            room_id_entry = ttk.Entry(room_window)
             room_id_entry.grid(row=0, column=1, padx=5, pady=5)
 
-            tk.Label(room_window, text="Is Available (True/False)").grid(row=1, column=0, padx=5, pady=5)
-            is_available_entry = tk.Entry(room_window)
+            ttk.Label(room_window, text="Is Available (True/False)").grid(row=1, column=0, padx=5, pady=5)
+            is_available_entry = ttk.Entry(room_window)
             is_available_entry.grid(row=1, column=1, padx=5, pady=5)
 
             def submit_availability():
@@ -441,7 +455,7 @@ class App:
                 self.inventory_manager.manage_room_availability(room_id, is_available)
                 room_window.destroy()
 
-            submit_button = tk.Button(room_window, text="Submit", command=submit_availability)
+            submit_button = ttk.Button(room_window, text="Submit", command=submit_availability)
             submit_button.grid(row=2, columnspan=2, pady=10)
 
         else:
@@ -452,12 +466,12 @@ class App:
             price_window = tk.Toplevel(self.root)
             price_window.title("Update Room Price")
 
-            tk.Label(price_window, text="Room ID").grid(row=0, column=0, padx=5, pady=5)
-            room_id_entry = tk.Entry(price_window)
+            ttk.Label(price_window, text="Room ID").grid(row=0, column=0, padx=5, pady=5)
+            room_id_entry = ttk.Entry(price_window)
             room_id_entry.grid(row=0, column=1, padx=5, pady=5)
 
-            tk.Label(price_window, text="New Price").grid(row=1, column=0, padx=5, pady=5)
-            price_entry = tk.Entry(price_window)
+            ttk.Label(price_window, text="New Price").grid(row=1, column=0, padx=5, pady=5)
+            price_entry = ttk.Entry(price_window)
             price_entry.grid(row=1, column=1, padx=5, pady=5)
 
             def submit_price():
@@ -466,7 +480,7 @@ class App:
                 self.inventory_manager.update_room_price(room_id, price)
                 price_window.destroy()
 
-            submit_button = tk.Button(price_window, text="Submit", command=submit_price)
+            submit_button = ttk.Button(price_window, text="Submit", command=submit_price)
             submit_button.grid(row=2, columnspan=2, pady=10)
 
         else:
@@ -474,7 +488,7 @@ class App:
 
 
 if __name__ == "__main__":
-    db_file = "../data/database.db"
+    db_file = "/mnt/data/database.db"
     inventory_manager = InventoryManager(db_file)
 
     root = tk.Tk()
