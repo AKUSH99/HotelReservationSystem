@@ -92,7 +92,7 @@ class HotelReservationApp(tk.Tk):
         right_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
         # Suchmaske
-        tk.Label(left_frame, text="Hotelsuche mit Enter bestätigen", font=("Arial", 18, "bold"), bg="#e8f0fe").pack(pady=10)
+        tk.Label(left_frame, text="Hotelsuche mit 'Enter' bestätigen", font=("Arial", 18, "bold"), bg="#F0E68C").pack(pady=10)
 
         self.city_entry = self.create_entry(left_frame, "Stadt (optional):")
         self.stars_entry = self.create_entry(left_frame, "Sterne (optional):")
@@ -112,7 +112,7 @@ class HotelReservationApp(tk.Tk):
         # Ergebnisse und Details
         instruction_label = tk.Label(right_frame,
                                      text="Klicken Sie auf ein Hotel, um die verfügbaren Räume anzuzeigen.",
-                                     font=("Arial", 14), bg="#E4EC13")
+                                     font=("Arial", 14), bg="#DAF7A6")
         instruction_label.pack(pady=10)
 
         self.results_frame = tk.Frame(right_frame, bg="#f0f4ff")
@@ -227,6 +227,9 @@ class HotelReservationApp(tk.Tk):
             rooms_canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
             rooms_canvas.configure(yscrollcommand=scrollbar.set)
 
+            # Bind mousewheel scrolling to the canvas
+            rooms_canvas.bind_all("<MouseWheel>", lambda event: self.on_mouse_wheel(event, rooms_canvas))
+
             for room in rooms:
                 room_details = (f"Zimmernummer: {room['Room Number']}\n"
                                 f"Typ: {room['Type']}\n"
@@ -236,6 +239,10 @@ class HotelReservationApp(tk.Tk):
                                 f"Preis: {room['Price']} €\n")
                 tk.Label(scrollable_frame, text=room_details, font=("Arial", 12), bg="#eef2ff", justify="left",
                          anchor="nw").pack(fill="both", padx=10, pady=5)
+
+    def on_mouse_wheel(self, event, canvas):
+        # Scrolls the canvas on mouse wheel scroll
+        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def clear_details(self):
         for widget in self.details_frame.winfo_children():
