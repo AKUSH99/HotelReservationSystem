@@ -8,8 +8,8 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 #from business.ReservationManager import ReservationManager
 from data_access.data_base import init_db
 from business.UserManager import UserManager
-#from business.SearchManager import SearchManager
-from ui.RegistrationUI import RegistrationUI
+from business.SearchManager import SearchManager
+#from ui.RegistrationUI import RegistrationUI
 from ui.SearchUI import SearchUI
 
 class AdminMenu():
@@ -76,8 +76,10 @@ class Login():
 
 class MainMenu():
 
-    def __init__(self):
-       self._login = Login(self)
+    def __init__(self, session, back=None):
+        self.session = session
+        self._login = Login(self)
+        self._search_ui = SearchUI(session, self)
 
     def run(self):
         print("1. Login")
@@ -105,7 +107,33 @@ class MainMenu():
                 print("Now you can book a Room for your stay.")
 
             case "3":
-                return SearchUI(session)
+                print("1. Show all Hotels")
+                print("2. Search by Name")
+                print("3. Exit")
+
+                choice = input("Choose Option (1-3): ")
+                return choice
+
+                match (choice):
+                    case "1":
+                        hotels = self.search_manager.get_all_hotels()
+                        for hotel in hotels:
+                            print(hotel)
+                        return self
+                    case "2":
+                        searched_name = input("Enter hotel name: ")
+                        hotels = self.search_manager.get_hotels_by_name(searched_name)
+                        for hotel in hotels:
+                            print(hotel)
+                        return self
+                    case "3":
+                        print("Thank you for visiting. Goodbye!")
+                        return self.back
+
+                    case _:
+                        print("Invalid")
+                        return self
+
 
             case "4":
                 print("Thank you for visiting. See you next time!")
@@ -132,12 +160,12 @@ if __name__ == '__main__':
     session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
     user_manager = UserManager(session)
     #reservation_manager = ReservationManager(session)
-    #search_manager = SearchManager(session)
-    registration_ui = RegistrationUI(session)
+    search_manager = SearchManager(session)
+    #registration_ui = RegistrationUI(session)
     search_ui = SearchUI(session)
 
 
-    main_menu = MainMenu()
+    main_menu = MainMenu(session)
 
     app = Application(main_menu)
     app.run()

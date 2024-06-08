@@ -68,6 +68,10 @@ class SearchManager:
         hotels = self.__session.execute(query).scalars().all()
         return hotels
 
+    def get_all_hotels(self):
+        query = select(Hotel)
+        hotels = self.__session.execute(query).scalars().all()
+        return hotels
 
 class HotelReservationApp(tk.Tk):
     def __init__(self, search_manager):

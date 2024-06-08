@@ -63,7 +63,7 @@ if __name__ == '__main__':
             print("Login successful!")
             break
         else:
-            print("Login failed! Try again!")
+            print("Login failed!")
 
     if user_manager.get_current_login():
         print(f"Welcome {user_manager.get_current_login().username}")
