@@ -17,11 +17,12 @@ class ReservationManager:
         self.engine = create_engine(f"sqlite:///{database_file}", echo=False)
         self.session = scoped_session(sessionmaker(bind=self.engine))
 
-    def is_room_available(self, room_number, start_date, end_date):
-        # Überprüft, ob das Zimmer im angegebenen Zeitraum verfügbar ist
+    def is_room_available(self, room_number, room_hotel_id, start_date, end_date):
+        # Überprüft, ob das Zimmer im angegebenen Zeitraum im angegebenen Hotel verfügbar ist
         bookings = self.session.query(Booking).filter(
             and_(
                 Booking.room_number == room_number,
+                Booking.room_hotel_id == room_hotel_id,
                 or_(
                     and_(Booking.start_date <= start_date, Booking.end_date >= start_date),
                     and_(Booking.start_date <= end_date, Booking.end_date >= end_date),
@@ -35,7 +36,7 @@ class ReservationManager:
         # User Story 1.3: Erstellt eine Buchung, wenn das Zimmer verfügbar ist
         start_date = datetime.strptime(start_date, '%Y-%m-%d')
         end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        if self.is_room_available(room_number, start_date, end_date):
+        if self.is_room_available(room_hotel_id, room_number, start_date, end_date):
             new_booking = Booking(
                 room_hotel_id=room_hotel_id,
                 room_number=room_number,
@@ -166,26 +167,47 @@ if __name__ == "__main__":
             print("No hotels found for your criteria.")
         else:
             for hotel in hotels:
-                print(hotel)
-            room_hotel_id = int(input("Enter hotel id: "))
-            room_number = input("Enter room number: ")
+                print(
+                    f"Hotel ID: {hotel.id}, name: {hotel.name}, {hotel.stars} stars, address: {hotel.address.street}, {hotel.address.city}")
+            room_hotel_id = int(input("Enter Hotel ID: "))
 
-            result = reservation_manager.create_booking(
-                room_hotel_id=room_hotel_id,
-                room_number=room_number,
-                guest_id=guest_id,
-                number_of_guests=max_guest,
-                start_date=start_date,
-                end_date=end_date,
-                comment='Booking as guest'
-            )
-            print(result)
+            matching_rooms = search_manager.get_rooms_by_hotel(room_hotel_id, max_guest)
 
-            if "successfully" in result:
-                booking_id = result.split()[-1]
-                booking = reservation_manager.get_booking_by_id(booking_id)
-                save_result = reservation_manager.save_booking_details(booking)
-                print(save_result)
+            valid_room_numbers = []
+
+            for room in matching_rooms:
+                if reservation_manager.is_room_available(room['Room Number'], room_hotel_id, start_date, end_date):
+                    valid_room_numbers.append(room['Room Number'])
+                    print(
+                        f"Room No.: {room['Room Number']}, up to {room['Max Guests']} people, description: {room['Description']}, price per night: {room['Price']} Hotel: {hotel.name}, {hotel.address.city}")
+
+            if not valid_room_numbers:
+                print("No available rooms found for your criteria.")
+            else:
+                while True:
+                    room_number = input("Enter room number: ")
+                    if room_number in valid_room_numbers:
+                        break
+                    else:
+                        print(
+                            f"Invalid room number. Please choose from the available rooms: {', '.join(valid_room_numbers)}")
+
+                result = reservation_manager.create_booking(
+                    room_hotel_id=room_hotel_id,
+                    room_number=room_number,
+                    guest_id=guest_id,
+                    number_of_guests=max_guest,
+                    start_date=start_date,
+                    end_date=end_date,
+                    comment='Booking as guest'
+                )
+                print(result)
+
+                if "successfully" in result:
+                    booking_id = result.split()[-1]
+                    booking = reservation_manager.get_booking_by_id(booking_id)
+                    save_result = reservation_manager.save_booking_details(booking)
+                    print(save_result)
 
     elif choice == "2":
         # Neuer Benutzer (wird in UserManager.py behandelt)
@@ -246,32 +268,64 @@ if __name__ == "__main__":
             print("No hotels found for your criteria.")
         else:
             for hotel in hotels:
-                print(hotel)
-            room_hotel_id = int(input("Enter hotel id: "))
-            room_number = input("Enter room number: ")
+                print(
+                    f"Hotel ID: {hotel.id}, name: {hotel.name}, {hotel.stars} stars, address: {hotel.address.street}, {hotel.address.city}")
+            room_hotel_id = int(input("Enter hotel ID: "))
 
-            result = reservation_manager.create_booking(
-                room_hotel_id=room_hotel_id,
-                room_number=room_number,
-                guest_id=guest_id,
-                number_of_guests=max_guest,
-                start_date=start_date,
-                end_date=end_date,
-                comment='Booking as new registered user'
-            )
-            print(result)
+            matching_rooms = search_manager.get_rooms_by_hotel(room_hotel_id, max_guest)
 
-            if "successfully" in result:
-                booking_id = result.split()[-1]
-                booking = reservation_manager.get_booking_by_id(booking_id)
-                save_result = reservation_manager.save_booking_details(booking)
-                print(save_result)
+            valid_room_numbers = []
+
+            for room in matching_rooms:
+                if reservation_manager.is_room_available(room['Room Number'], room_hotel_id, start_date, end_date):
+                    valid_room_numbers.append(room['Room Number'])
+                    print(
+                        f"Room No.: {room['Room Number']}, up to {room['Max Guests']} people, description: {room['Description']}, price per night: {room['Price']} Hotel: {hotel.name}, {hotel.address.city}")
+
+            if not valid_room_numbers:
+                print("No available rooms found for your criteria.")
+            else:
+                while True:
+                    room_number = input("Enter room number: ")
+                    if room_number in valid_room_numbers:
+                        break
+                    else:
+                        print(
+                            f"Invalid room number. Please choose from the available rooms: {', '.join(valid_room_numbers)}")
+
+                result = reservation_manager.create_booking(
+                    room_hotel_id=room_hotel_id,
+                    room_number=room_number,
+                    guest_id=guest_id,
+                    number_of_guests=max_guest,
+                    start_date=start_date,
+                    end_date=end_date,
+                    comment='Booking as new registered user'
+                )
+                print(result)
+
+                if "successfully" in result:
+                    booking_id = result.split()[-1]
+                    booking = reservation_manager.get_booking_by_id(booking_id)
+                    save_result = reservation_manager.save_booking_details(booking)
+                    print(save_result)
+
 
     elif choice == "3":
         # Code zum Einloggen in ein bestehendes Konto
         print("Log in to an existing account")
-        # Hier den Login-Prozess und die Buchung für eingeloggte Benutzer implementieren
-        pass
+        input_username = input("Enter username: ")
+        input_password = input("Enter password: ")
+        login_result = user_manager.login(input_username, input_password)
+        if login_result:
+            print("Login successful!")
+        else:
+            print("Login failed! Please check your username and password.")
+
+    # Nur zu Testzwecken
+    elif choice == "4":
+        hotels = search_manager.search_hotels_by_city_date_guests_stars("Olten", "2024-05-13", "2024-05-24", 3, None)
+        print(hotels)
 
     else:
         print("Invalid option. Please restart the programme and select a valid option.")
