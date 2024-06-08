@@ -9,8 +9,9 @@ from data_access.data_base import init_db
 from business.UserManager import UserManager
 
 class RegistrationUI:
-    def __init__(self):
-        pass
+    def __init__(self, session):
+        self.session = session
+
 
 if __name__ == '__main__':
     db_file = "../data/test.db"
@@ -19,6 +20,7 @@ if __name__ == '__main__':
         init_db(db_file, generate_example_data=True)
     session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
     user_manager = UserManager(session)
+    registration_ui = RegistrationUI(session)
 
     print("USERSTORY: Login")
     while user_manager.has_attempts_left():

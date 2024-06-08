@@ -10,6 +10,7 @@ from data_access.data_base import init_db
 from business.UserManager import UserManager
 #from business.SearchManager import SearchManager
 from ui.RegistrationUI import RegistrationUI
+from ui.SearchUI import SearchUI
 
 class AdminMenu():
     def __init__(self, main_menu):
@@ -35,7 +36,7 @@ class RegisteredHomeMenu():
         print("2. Search Hotels")
         print("3. Exit")
 
-        user_in = input("Choose Option: ")
+        user_in = input("Choose Option (1-3): ")
         match user_in:
             case "1":
                 user_manager.logout()
@@ -90,9 +91,24 @@ class MainMenu():
                 return self._login
 
             case "2":
-                print("return ui for registration")
+                print("Register as Guest")
+                username = input("Enter your username: ")
+                password = input("Enter your password: ")
+                firstname = input("Enter your fristname: ")
+                lastname = input("Enter your lastname: ")
+                email = input("Enter your email: ")
+                street = input("Enter your street: ")
+                zip = input("Enter your zip: ")
+                city = input("Enter your city: ")
 
+                print("Registration successful!")
+                print("Now you can book a Room for your stay.")
 
+            case "3":
+                return SearchUI(session)
+
+            case "4":
+                print("Thank you for visiting. See you next time!")
 
 class Application():
     def __init__(self, start):
@@ -117,7 +133,8 @@ if __name__ == '__main__':
     user_manager = UserManager(session)
     #reservation_manager = ReservationManager(session)
     #search_manager = SearchManager(session)
-    registration_ui = RegistrationUI()
+    registration_ui = RegistrationUI(session)
+    search_ui = SearchUI(session)
 
 
     main_menu = MainMenu()

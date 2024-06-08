@@ -1,5 +1,11 @@
+import sys
+
+from pathlib import Path
+
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker, scoped_session
+
+from data_access.data_base import init_db
 from data_models.models import Login, Role, RegisteredGuest, Address
 
 class UserManager(object):
@@ -66,3 +72,12 @@ class UserManager(object):
 
     def has_attempts_left(self):
         return self._attempts_left > 0
+
+if __name__ == '__main__':
+    print("Start program...")
+    db_file = "./data/test.db"
+    database_path = Path(db_file)
+    if not database_path.is_file():
+        init_db(db_file, generate_example_data=True)
+    session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
+    user_manager = UserManager(session)
