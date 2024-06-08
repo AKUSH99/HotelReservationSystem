@@ -14,7 +14,7 @@ class InventoryManager:
         database_path = Path(database_file)
         if not database_path.is_file():
             init_db(database_file, generate_example_data=True)
-        self.__engine = create_engine(f"sqlite:///{database_file}", echo=False)
+        self.__engine = create_engine(f"sqlite:///{database_file}", echo=True)
         self.__Session = scoped_session(sessionmaker(bind=self.__engine))
         self.user_manager = UserManager(self.__Session)
 
