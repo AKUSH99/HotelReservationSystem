@@ -1,0 +1,8 @@
+booking_id,32
+room_hotel_id,1
+room_number,05
+guest_id,25
+number_of_guests,3
+start_date,2024-05-08
+end_date,2024-05-12
+comment,Booking as guest

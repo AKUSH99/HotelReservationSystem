@@ -1,0 +1,8 @@
+booking_id,36
+room_hotel_id,1
+room_number,05
+guest_id,36
+number_of_guests,3
+start_date,2024-06-28
+end_date,2024-07-01
+comment,Booking as new registered user
