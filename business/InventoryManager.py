@@ -386,7 +386,7 @@ class App:
             booking_list.heading("Status", text="Status")
 
             for booking in bookings:
-                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_id, booking.date, booking.status))
+                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_hotel_id, booking.start_date, booking.end_date))
 
             booking_list.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
@@ -484,8 +484,8 @@ class App:
 
 
 if __name__ == "__main__":
-        db_file = "../data/database.db"
-        # Initialisierung der Datenbankverbindung
+    db_file = "../data/database.db"
+    # Initialisierung der Datenbankverbindung
     database_path = Path('../data/database.db')
     if not database_path.is_file():
         init_db(str(database_path), generate_example_data=True)
