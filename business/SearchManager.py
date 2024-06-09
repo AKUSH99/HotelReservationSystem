@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 from sqlalchemy import create_engine, select, func, and_, or_
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -51,13 +50,13 @@ class SearchManager:
             query_booked_rooms = query_booked_rooms.join(Hotel).where(
                 Room.hotel==hotel
             )
-        # print(query_booked_rooms)
+        print(query_booked_rooms)
         # results = self.__session.execute(query_booked_rooms).scalars().all()
         # for result in results:
         #     print(result)
 
         query = query.where(Room.id.notin_(query_booked_rooms))
-        results = self.__session.execute(query).scalars().all()
+        results = self._session.execute(query).scalars().all()
         return results
 
 
@@ -100,6 +99,7 @@ class SearchManager:
         hotels = self._session.execute(query).scalars().all()
         return hotels
 
+
 class HotelReservationApp(tk.Tk):
     def __init__(self, search_manager):
         super().__init__()
@@ -121,13 +121,12 @@ class HotelReservationApp(tk.Tk):
         right_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
         # Suchmaske
-        tk.Label(left_frame, text="Hotelsuche mit 'Enter' bestätigen", font=("Arial", 18, "bold"), bg="#F0E68C").pack(pady=10)
+        tk.Label(left_frame, text="Hotelsuche mit 'Enter' bestätigen", font=("Arial", 18, "bold"), bg="#F0E68C").pack(
+            pady=10)
 
         self.city_entry = self.create_entry(left_frame, "Stadt (optional):")
         self.stars_entry = self.create_entry(left_frame, "Sterne (optional):")
         self.guests_entry = self.create_entry(left_frame, "Max Gäste (optional):")
-
-        # Anpassung der Datumseingabe als Textfeld mit Validierung
         self.start_date_entry = self.create_date_entry(left_frame, "Startdatum (DD.MM.YYYY, optional):")
         self.end_date_entry = self.create_date_entry(left_frame, "Enddatum (DD.MM.YYYY, optional):")
 
@@ -137,6 +136,17 @@ class HotelReservationApp(tk.Tk):
 
         # Bind Enter key to search_hotels method
         self.bind('<Return>', lambda event: self.search_hotels())
+
+        # Suchmaske - Verfügbare Zimmer suchen
+        tk.Label(left_frame, text="Verfügbare Zimmer suchen", font=("Arial", 18, "bold"), bg="#F0E68C").pack(pady=10)
+
+        self.hotel_name_entry = self.create_entry(left_frame, "Hotel Name (optional):")
+        self.avail_start_date_entry = self.create_date_entry(left_frame, "Startdatum (DD.MM.YYYY):")
+        self.avail_end_date_entry = self.create_date_entry(left_frame, "Enddatum (DD.MM.YYYY):")
+
+        search_rooms_btn = tk.Button(left_frame, text="Verfügbare Zimmer suchen", command=self.search_available_rooms,
+                                     font=("Arial", 14), bg="#4CAF50", fg="white")
+        search_rooms_btn.pack(pady=10)
 
         # Ergebnisse und Details
         instruction_label = tk.Label(right_frame,
@@ -221,6 +231,68 @@ class HotelReservationApp(tk.Tk):
                 first_item = self.tree.get_children()[0]
                 self.tree.selection_set(first_item)
                 self.show_selected_hotel_details(None)
+
+    def search_available_rooms(self):
+        self.clear_details()
+
+        hotel_name = self.hotel_name_entry.get()
+        avail_start_date = self.parse_date(self.avail_start_date_entry.get())
+        avail_end_date = self.parse_date(self.avail_end_date_entry.get())
+
+        if not avail_start_date or not avail_end_date:
+            messagebox.showerror("Fehlende Daten", "Bitte geben Sie sowohl das Start- als auch das Enddatum ein.")
+            return
+
+        hotel = None
+        if hotel_name:
+            hotels = self.search_manager.get_hotels_by_name(hotel_name)
+            if hotels:
+                hotel = hotels[0]
+            else:
+                messagebox.showinfo("Hotel nicht gefunden", "Es wurde kein Hotel mit diesem Namen gefunden.")
+                return
+
+        available_rooms = self.search_manager.search_rooms_by_availability(
+            start_date=datetime.strptime(avail_start_date, "%Y-%m-%d"),
+            end_date=datetime.strptime(avail_end_date, "%Y-%m-%d"),
+            hotel=hotel
+        )
+
+        if not available_rooms:
+            messagebox.showinfo("Keine verfügbaren Zimmer",
+                                "Es wurden keine verfügbaren Zimmer für die angegebenen Daten gefunden.")
+        else:
+            self.display_available_rooms(available_rooms)
+
+    def display_available_rooms(self, rooms):
+        self.clear_details()
+
+        rooms_canvas = tk.Canvas(self.details_frame, bg="#eef2ff")
+        rooms_canvas.pack(side="left", fill="both", expand=True)
+
+        scrollbar = ttk.Scrollbar(self.details_frame, orient="vertical", command=rooms_canvas.yview)
+        scrollbar.pack(side="right", fill="y")
+
+        scrollable_frame = tk.Frame(rooms_canvas, bg="#eef2ff")
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: rooms_canvas.configure(
+                scrollregion=rooms_canvas.bbox("all")
+            )
+        )
+
+        rooms_canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        rooms_canvas.configure(yscrollcommand=scrollbar.set)
+
+        for room in rooms:
+            room_details = (f"Zimmernummer: {room.number}\n"
+                            f"Typ: {room.type}\n"
+                            f"Max Gäste: {room.max_guests}\n"
+                            f"Beschreibung: {room.description}\n"
+                            f"Ausstattung: {room.amenities}\n"
+                            f"Preis: {room.price} €\n")
+            tk.Label(scrollable_frame, text=room_details, font=("Arial", 12), bg="#eef2ff", justify="left",
+                     anchor="nw").pack(fill="both", padx=10, pady=5)
 
     def show_selected_hotel_details(self, event):
         selection = self.tree.selection()
