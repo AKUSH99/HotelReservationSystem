@@ -34,7 +34,7 @@ class UserManager():
         self._attempts_left = self._max_attempts
         self._current_login = None
 
-    def register_user(self, username, password, firstname, lastname, email, street, zip, city):
+    def register_guest(self, username, password, firstname, lastname, email, street, zip, city):
         query = select(Role).where(Role.name == "registered_user")
         role = self._session.execute(query).scalars().one()
         try:
@@ -104,37 +104,37 @@ if __name__ == '__main__':
         print("No attempts left, program is closed!")
         sys.exit(1)
 
-        user_manager.logout()
-        print("Goodbye!")
-        print(user_manager.get_current_login())
+    user_manager.logout()
+    print("Goodbye!")
+    print(user_manager.get_current_login())
 
-        print("USERSTORY: Register Guest")
+    print("USERSTORY: Register Guest")
+    username = input("Enter your username: ")
+    password = input("Enter your password: ")
+    firstname = input("Enter your fristname: ")
+    lastname = input("Enter your lastname: ")
+    email = input("Enter your email: ")
+    street = input("Enter your street: ")
+    zip = input("Enter your zip: ")
+    city = input("Enter your city: ")
+
+    user_manager.register_guest(username, password, firstname, lastname, email, street, zip, city)
+    print("USERSTORY: Login")
+    while user_manager.has_attempts_left():
         username = input("Enter your username: ")
         password = input("Enter your password: ")
-        firstname = input("Enter your fristname: ")
-        lastname = input("Enter your lastname: ")
-        email = input("Enter your email: ")
-        street = input("Enter your street: ")
-        zip = input("Enter your zip: ")
-        city = input("Enter your city: ")
 
-        user_manager.register_guest(username, password, firstname, lastname, email, street, zip, city)
-        print("USERSTORY: Login")
-        while user_manager.has_attempts_left():
-            username = input("Enter your username: ")
-            password = input("Enter your password: ")
-
-            if user_manager.login(username, password):
-                print("Login successful!")
-                break
-            else:
-                print("Login failed! Try again!")
-
-        if user_manager.get_current_login():
-            print(f"Welcome {user_manager.get_current_login().username}")
+        if user_manager.login(username, password):
+            print("Login successful!")
+            break
         else:
-            print("No attempts left, program is closed!")
-            sys.exit(1)
+            print("Login failed! Try again!")
+
+    if user_manager.get_current_login():
+        print(f"Welcome {user_manager.get_current_login().username}")
+    else:
+        print("No attempts left, program is closed!")
+        sys.exit(1)
 
 
 
