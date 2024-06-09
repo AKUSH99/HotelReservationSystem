@@ -126,27 +126,19 @@ class HotelReservationApp(tk.Tk):
 
         self.city_entry = self.create_entry(left_frame, "Stadt (optional):")
         self.stars_entry = self.create_entry(left_frame, "Sterne (optional):")
-        self.guests_entry = self.create_entry(left_frame, "Max Gäste (optional):")
+        self.guests_entry = self.create_entry(left_frame, "Anzahl Gäste (optional):")
         self.start_date_entry = self.create_date_entry(left_frame, "Startdatum (DD.MM.YYYY, optional):")
         self.end_date_entry = self.create_date_entry(left_frame, "Enddatum (DD.MM.YYYY, optional):")
+        self.hotel_name_entry = self.create_entry(left_frame, "Hotel Name (optional):")
+        self.avail_start_date_entry = self.create_date_entry(left_frame, "Startdatum (DD.MM.YYYY):")
+        self.avail_end_date_entry = self.create_date_entry(left_frame, "Enddatum (DD.MM.YYYY):")
 
         search_btn = tk.Button(left_frame, text="Suchen", command=self.search_hotels, font=("Arial", 14), bg="#4CAF50",
                                fg="white")
         search_btn.pack(pady=10)
 
-        # Bind Enter key to search_hotels method
         self.bind('<Return>', lambda event: self.search_hotels())
 
-        # Suchmaske - Verfügbare Zimmer suchen
-        tk.Label(left_frame, text="Verfügbare Zimmer suchen", font=("Arial", 18, "bold"), bg="#F0E68C").pack(pady=10)
-
-        self.hotel_name_entry = self.create_entry(left_frame, "Hotel Name (optional):")
-        self.avail_start_date_entry = self.create_date_entry(left_frame, "Startdatum (DD.MM.YYYY):")
-        self.avail_end_date_entry = self.create_date_entry(left_frame, "Enddatum (DD.MM.YYYY):")
-
-        search_rooms_btn = tk.Button(left_frame, text="Verfügbare Zimmer suchen", command=self.search_available_rooms,
-                                     font=("Arial", 14), bg="#4CAF50", fg="white")
-        search_rooms_btn.pack(pady=10)
 
         # Ergebnisse und Details
         instruction_label = tk.Label(right_frame,
@@ -204,8 +196,8 @@ class HotelReservationApp(tk.Tk):
         city = self.city_entry.get()
         stars = self.stars_entry.get()
         max_guests = self.guests_entry.get()
-        start_date = self.parse_date(self.start_date_entry.get())
-        end_date = self.parse_date(self.end_date_entry.get())
+        avail_start_date = self.parse_date(self.avail_start_date_entry.get())
+        avail_end_date = self.parse_date(self.avail_end_date_entry.get())
 
         try:
             stars = int(stars) if stars else None
@@ -216,7 +208,7 @@ class HotelReservationApp(tk.Tk):
             return
 
         hotels = self.search_manager.search_hotels_by_city_date_guests_stars(
-            city, start_date, end_date, max_guests, stars
+            city, avail_start_date, avail_end_date, max_guests, stars
         )
 
         if not hotels:
@@ -231,6 +223,7 @@ class HotelReservationApp(tk.Tk):
                 first_item = self.tree.get_children()[0]
                 self.tree.selection_set(first_item)
                 self.show_selected_hotel_details(None)
+
 
     def search_available_rooms(self):
         self.clear_details()
@@ -362,6 +355,7 @@ class HotelReservationApp(tk.Tk):
     def clear_details(self):
         for widget in self.details_frame.winfo_children():
             widget.destroy()
+
 
 
 if __name__ == "__main__":
