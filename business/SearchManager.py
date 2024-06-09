@@ -4,9 +4,10 @@ from sqlalchemy import create_engine, select, func, and_, or_
 from sqlalchemy.orm import sessionmaker, scoped_session
 import tkinter as tk
 from tkinter import ttk, messagebox
-from datetime import datetime
+from datetime import datetime, timedelta
 from data_models.models import *
 from data_access.data_base import init_db
+
 
 class SearchManager:
     def __init__(self, database_file):
@@ -38,6 +39,34 @@ class SearchManager:
 
         result = self.__session.execute(query).scalars().all()
         return result
+
+    def search_rooms_by_availability(self, start_date:datetime, end_date:datetime, hotel:Hotel=None):
+        query = select(Room)
+        if hotel is not None:
+            query = query.join(Hotel).where(Room.hotel==hotel)
+
+        query_booked_rooms = select(Room.id).join(Booking).where(
+            or_(
+                Booking.start_date.between(start_date-timedelta(hours=1), end_date+timedelta(hours=1)),
+                Booking.end_date.between(start_date, end_date)
+            )
+        )
+        if hotel is not None:
+            query_booked_rooms = query_booked_rooms.join(Hotel).where(
+                Room.hotel==hotel
+            )
+        # print(query_booked_rooms)
+        # results = self.__session.execute(query_booked_rooms).scalars().all()
+        # for result in results:
+        #     print(result)
+
+        query = query.where(Room.id.notin_(query_booked_rooms))
+        results = self.__session.execute(query).scalars().all()
+        return results
+
+
+
+
 
     def get_rooms_by_hotel(self, hotel_id, max_guest):
         query = select(
@@ -213,7 +242,15 @@ class HotelReservationApp(tk.Tk):
                  bg="#eef2ff").pack(pady=5)
         tk.Label(self.details_frame, text=f"Sterne: {hotel.stars}", font=("Arial", 14), bg="#eef2ff").pack(pady=5)
 
-        rooms = self.search_manager.get_rooms_by_hotel(hotel.id, 1)
+        try:
+            max_guests = self.guests_entry.get()
+            max_guests = int(max_guests) if max_guests else 1
+        except ValueError:
+            messagebox.showerror("Ungültiger Wert",
+                                 "Bitte geben Sie gültige numerische Werte für Sterne und max. Gäste ein.")
+            return
+
+        rooms = self.search_manager.get_rooms_by_hotel(hotel.id, max_guests)
         if not rooms:
             tk.Label(self.details_frame, text="Keine verfügbaren Zimmer.", font=("Arial", 14), bg="#eef2ff").pack(
                 pady=10)
@@ -260,6 +297,7 @@ class HotelReservationApp(tk.Tk):
 if __name__ == "__main__":
     db_file = "../data/database.db"
     search_manager = SearchManager(db_file)
+    # search_manager.search_rooms_by_availability(start_date=datetime(2024,2,19),end_date=datetime(2024,2,20))
 
     app = HotelReservationApp(search_manager)
     app.mainloop()
