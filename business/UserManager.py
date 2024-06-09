@@ -80,7 +80,7 @@ class RegistrationUI:
         self.session = session
 
 if __name__ == '__main__':
-    db_file = "../data/test.db"
+    db_file = "../data/database.db"
     database_path = Path(db_file)
     if not database_path.is_file():
         init_db(db_file, generate_example_data=True)
