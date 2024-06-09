@@ -10,12 +10,8 @@ from data_access.data_base import init_db
 
 
 class SearchManager:
-    def __init__(self, database_file):
-        database_path = Path(database_file)
-        if not database_path.is_file():
-            init_db(database_file, generate_example_data=True)
-        self.__engine = create_engine(f"sqlite:///{database_file}", echo=False)
-        self.__session = scoped_session(sessionmaker(bind=self.__engine))
+    def __init__(self, session):
+        self._session = session
 
     def search_hotels_by_city_date_guests_stars(self, city=None, start_date=None, end_date=None, max_guest=1,
                                                 stars=None):
@@ -37,7 +33,7 @@ class SearchManager:
         if stars is not None:
             query = query.where(Hotel.stars == stars)
 
-        result = self.__session.execute(query).scalars().all()
+        result = self._session.execute(query).scalars().all()
         return result
 
     def search_rooms_by_availability(self, start_date:datetime, end_date:datetime, hotel:Hotel=None):
@@ -82,7 +78,7 @@ class SearchManager:
                 Room.max_guests >= max_guest
             )
         )
-        rooms = self.__session.execute(query).all()
+        rooms = self._session.execute(query).all()
         return [{
             "Room Number": room[0],
             "Type": room[1],
@@ -92,14 +88,16 @@ class SearchManager:
             "Price": room[5]
         } for room in rooms]
 
+
+
     def get_hotels_by_name(self, name):
         query = select(Hotel).where(Hotel.name == name)
-        hotels = self.__session.execute(query).scalars().all()
+        hotels = self._session.execute(query).scalars().all()
         return hotels
 
     def get_all_hotels(self):
         query = select(Hotel)
-        hotels = self.__session.execute(query).scalars().all()
+        hotels = self._session.execute(query).scalars().all()
         return hotels
 
 class HotelReservationApp(tk.Tk):
@@ -296,7 +294,14 @@ class HotelReservationApp(tk.Tk):
 
 if __name__ == "__main__":
     db_file = "../data/database.db"
-    search_manager = SearchManager(db_file)
+        # Initialisierung der Datenbankverbindung
+    database_path = Path('../data/database.db')
+    if not database_path.is_file():
+        init_db(str(database_path), generate_example_data=True)
+    engine = create_engine(f"sqlite:///{database_path}", echo=False)
+
+    session = scoped_session(sessionmaker(bind=engine))
+    search_manager = SearchManager(session)
     # search_manager.search_rooms_by_availability(start_date=datetime(2024,2,19),end_date=datetime(2024,2,20))
 
     app = HotelReservationApp(search_manager)

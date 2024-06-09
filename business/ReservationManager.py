@@ -9,17 +9,12 @@ from data_access.data_base import init_db
 from pathlib import Path
 
 class ReservationManager:
-    def __init__(self, database_file):
-        # Initialisierung der Datenbankverbindung
-        self.database_path = Path(database_file)
-        if not self.database_path.is_file():
-            init_db(database_file, generate_example_data=True)
-        self.engine = create_engine(f"sqlite:///{database_file}", echo=False)
-        self.session = scoped_session(sessionmaker(bind=self.engine))
+    def __init__(self, session):
+        self._session = session
 
     def is_room_available(self, room_number, room_hotel_id, start_date, end_date):
         # Überprüft, ob das Zimmer im angegebenen Zeitraum im angegebenen Hotel verfügbar ist
-        bookings = self.session.query(Booking).filter(
+        bookings = self._session.query(Booking).filter(
             and_(
                 Booking.room_number == room_number,
                 Booking.room_hotel_id == room_hotel_id,
@@ -46,8 +41,8 @@ class ReservationManager:
                 end_date=end_date,
                 comment=comment
             )
-            self.session.add(new_booking)
-            self.session.commit()
+            self._session.add(new_booking)
+            self._session.commit()
             return f"Booking successfully created with ID: {new_booking.id}"
         else:
             return "Room is not available for the selected dates."
@@ -74,21 +69,21 @@ class ReservationManager:
 
     def get_booking_by_id(self, booking_id):
         # Methode, um eine Buchung anhand ihrer ID zu holen
-        return self.session.query(Booking).filter_by(id=int(booking_id)).first()
+        return self._session.query(Booking).filter_by(id=int(booking_id)).first()
 
     def create_guest(self, firstname, lastname, email):
         # Erstellt einen temporären Gast mit einer leeren Adresse
         empty_address = Address(street='', zip='', city='')
-        self.session.add(empty_address)
-        self.session.flush()  # Stellt sicher, dass die Adresse eine ID bekommt
+        self._session.add(empty_address)
+        self._session.flush()  # Stellt sicher, dass die Adresse eine ID bekommt
         new_guest = Guest(
             firstname=firstname,
             lastname=lastname,
             email=email,
             address_id=empty_address.id
         )
-        self.session.add(new_guest)
-        self.session.commit()
+        self._session.add(new_guest)
+        self._session.commit()
         return new_guest.id
 
     def validate_email(self, email):
@@ -111,9 +106,19 @@ if __name__ == "__main__":
     from business.SearchManager import SearchManager
     from business.UserManager import UserManager
 
-    reservation_manager = ReservationManager('../data/database.db')
+    # Initialisierung der Datenbankverbindung
+    database_path = Path('../data/database.db')
+    if not database_path.is_file():
+        init_db(str(database_path), generate_example_data=True)
+    engine = create_engine(f"sqlite:///{database_path}", echo=False)
+
+    session = scoped_session(sessionmaker(bind=engine))
+
+    reservation_manager = ReservationManager(session)
     search_manager = SearchManager('../data/database.db')
-    user_manager = UserManager(reservation_manager.session)
+    user_manager = UserManager(reservation_manager._session)
+
+
 
     # Interaktiver Prozess zur Auswahl der Buchungsoption
     print("Welcome! How would you like to proceed?")

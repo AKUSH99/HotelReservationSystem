@@ -10,20 +10,16 @@ from data_models.models import Login, Role, RegisteredGuest, Address, Guest, Hot
 
 
 class InventoryManager:
-    def __init__(self, database_file):
-        database_path = Path(database_file)
-        if not database_path.is_file():
-            init_db(database_file, generate_example_data=True)
-        self.__engine = create_engine(f"sqlite:///{database_file}", echo=True)
-        self.__Session = scoped_session(sessionmaker(bind=self.__engine))
-        self.user_manager = UserManager(self.__Session)
+    def __init__(self, session):
+        self._session = session
+        self.user_manager = UserManager(self._session)
 
     def add_hotel(self, name, stars, address_id):
         if not self.user_manager.is_admin():
             print("Nur Administratoren können neue Hotels hinzufügen.")
             return
 
-        session = self.__Session()
+        session = self._session()
         try:
             new_hotel = Hotel(name=name, stars=stars, address_id=address_id)
             session.add(new_hotel)
@@ -40,7 +36,7 @@ class InventoryManager:
             print("Nur Administratoren können Hotels entfernen.")
             return
 
-        session = self.__Session()
+        session = self._session()
         try:
             session.execute(delete(Hotel).where(Hotel.id == hotel_id))
             session.commit()
@@ -56,7 +52,7 @@ class InventoryManager:
             print("Nur Administratoren können Hotelinformationen aktualisieren.")
             return
 
-        session = self.__Session()
+        session = self._session()
         try:
             hotel = session.execute(select(Hotel).where(Hotel.id == hotel_id)).scalars().one_or_none()
             if hotel:
@@ -81,7 +77,7 @@ class InventoryManager:
             print("Nur Administratoren können Buchungen anzeigen.")
             return
 
-        session = self.__Session()
+        session = self._session()
         try:
             bookings = session.execute(select(Booking)).scalars().all()
             return bookings
@@ -95,7 +91,7 @@ class InventoryManager:
             print("Nur Administratoren können Buchungsinformationen aktualisieren.")
             return
 
-        session = self.__Session()
+        session = self._session()
         try:
             booking = session.execute(select(Booking).where(Booking.id == booking_id)).scalars().one_or_none()
             if booking:
@@ -116,7 +112,7 @@ class InventoryManager:
             print("Nur Administratoren können die Zimmerverfügbarkeit verwalten.")
             return
 
-        session = self.__Session()
+        session = self._session()
         try:
             room = session.execute(select(Room).where(Room.id == room_id)).scalars().one_or_none()
             if room:
@@ -136,7 +132,7 @@ class InventoryManager:
             print("Nur Administratoren können Zimmerpreise aktualisieren.")
             return
 
-        session = self.__Session()
+        session = self._session()
         try:
             room = session.execute(select(Room).where(Room.id == room_id)).scalars().one_or_none()
             if room:
@@ -488,8 +484,15 @@ class App:
 
 
 if __name__ == "__main__":
-    db_file = "/mnt/data/database.db"
-    inventory_manager = InventoryManager(db_file)
+        db_file = "../data/database.db"
+        # Initialisierung der Datenbankverbindung
+    database_path = Path('../data/database.db')
+    if not database_path.is_file():
+        init_db(str(database_path), generate_example_data=True)
+    engine = create_engine(f"sqlite:///{database_path}", echo=False)
+
+    session = scoped_session(sessionmaker(bind=engine))
+    inventory_manager = InventoryManager(session)
 
     root = tk.Tk()
     app = App(root, inventory_manager)
