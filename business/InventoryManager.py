@@ -140,26 +140,6 @@ class InventoryManager:
             session.close()
 
 
-    def manage_room_availability(self, room_id, is_available):
-        if not self.user_manager.is_admin():
-            print("Nur Administratoren können die Zimmerverfügbarkeit verwalten.")
-            return
-
-        session = self._session()
-        try:
-            room = session.execute(select(Room).where(Room.id == room_id)).scalars().one_or_none()
-            if room:
-                room.is_available = is_available
-                session.commit()
-                print(f"Verfügbarkeit des Zimmers mit ID '{room_id}' erfolgreich aktualisiert.")
-            else:
-                print(f"Zimmer mit ID '{room_id}' nicht gefunden.")
-        except Exception as e:
-            session.rollback()
-            print(f"Fehler beim Aktualisieren der Zimmerverfügbarkeit: {e}")
-        finally:
-            session.close()
-
     def update_room_price(self, room_id, price):
         if not self.user_manager.is_admin():
             print("Nur Administratoren können Zimmerpreise aktualisieren.")
@@ -291,9 +271,6 @@ class App:
 
         self.update_booking_button = ttk.Button(self.admin_frame, text="Update Booking", command=self.update_booking)
         self.update_booking_button.grid(row=4, columnspan=2, pady=5, padx=5)
-
-        self.manage_room_availability_button = ttk.Button(self.admin_frame, text="Manage Room Availability", command=self.manage_room_availability)
-        self.manage_room_availability_button.grid(row=5, columnspan=2, pady=5, padx=5)
 
         self.update_room_price_button = ttk.Button(self.admin_frame, text="Update Room Price", command=self.update_room_price)
         self.update_room_price_button.grid(row=6, columnspan=2, pady=5, padx=5)
@@ -505,30 +482,7 @@ class App:
         else:
             messagebox.showerror("Error", "Only administrators can update bookings.")
 
-    def manage_room_availability(self):
-        if self.user_manager.is_admin():
-            room_window = tk.Toplevel(self.root)
-            room_window.title("Manage Room Availability")
 
-            ttk.Label(room_window, text="Room ID").grid(row=0, column=0, padx=5, pady=5)
-            room_id_entry = ttk.Entry(room_window)
-            room_id_entry.grid(row=0, column=1, padx=5, pady=5)
-
-            ttk.Label(room_window, text="Is Available (True/False)").grid(row=1, column=0, padx=5, pady=5)
-            is_available_entry = ttk.Entry(room_window)
-            is_available_entry.grid(row=1, column=1, padx=5, pady=5)
-
-            def submit_availability():
-                room_id = int(room_id_entry.get())
-                is_available = is_available_entry.get().lower() == 'true'
-                self.inventory_manager.manage_room_availability(room_id, is_available)
-                room_window.destroy()
-
-            submit_button = ttk.Button(room_window, text="Submit", command=submit_availability)
-            submit_button.grid(row=2, columnspan=2, pady=10)
-
-        else:
-            messagebox.showerror("Error", "Only administrators can manage room availability.")
 
     def update_room_price(self):
         if self.user_manager.is_admin():
