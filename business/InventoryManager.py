@@ -3,10 +3,9 @@ from tkinter import messagebox, ttk
 from pathlib import Path
 from sqlalchemy import create_engine, select, update, delete
 from sqlalchemy.orm import sessionmaker, scoped_session, joinedload
-
-# Importiere die Modelle (stellen Sie sicher, dass diese korrekt importiert sind)
 from data_access.data_base import init_db
 from data_models.models import Login, Role, RegisteredGuest, Address, Guest, Hotel, Booking, Room
+import datetime
 
 
 class InventoryManager:
@@ -122,8 +121,14 @@ class InventoryManager:
         try:
             booking = session.execute(select(Booking).where(Booking.id == booking_id)).scalars().one_or_none()
             if booking:
-                for key, value in kwargs.items():
-                    setattr(booking, key, value)
+                if 'start_date' in kwargs:
+                    booking.start_date = kwargs['start_date']  # Use date object directly
+                if 'end_date' in kwargs:
+                    booking.end_date = kwargs['end_date']  # Use date object directly
+                if 'guest_id' in kwargs:
+                    booking.guest_id = kwargs['guest_id']
+                if 'room_id' in kwargs:
+                    booking.room_id = kwargs['room_id']
                 session.commit()
                 print(f"Buchung mit ID '{booking_id}' erfolgreich aktualisiert.")
             else:
@@ -133,6 +138,7 @@ class InventoryManager:
             print(f"Fehler beim Aktualisieren der Buchung: {e}")
         finally:
             session.close()
+
 
     def manage_room_availability(self, room_id, is_available):
         if not self.user_manager.is_admin():
@@ -460,9 +466,14 @@ class App:
             room_id_entry = ttk.Entry(booking_window)
             room_id_entry.grid(row=2, column=1, padx=5, pady=5)
 
-            ttk.Label(booking_window, text="New Status (optional)").grid(row=3, column=0, padx=5, pady=5)
-            status_entry = ttk.Entry(booking_window)
-            status_entry.grid(row=3, column=1, padx=5, pady=5)
+            ttk.Label(booking_window, text="New Start Date (DD.MM.YYYY, optional)").grid(row=3, column=0, padx=5,
+                                                                                         pady=5)
+            start_date_entry = ttk.Entry(booking_window)
+            start_date_entry.grid(row=3, column=1, padx=5, pady=5)
+
+            ttk.Label(booking_window, text="New End Date (DD.MM.YYYY, optional)").grid(row=4, column=0, padx=5, pady=5)
+            end_date_entry = ttk.Entry(booking_window)
+            end_date_entry.grid(row=4, column=1, padx=5, pady=5)
 
             def submit_update():
                 booking_id = int(booking_id_entry.get())
@@ -471,13 +482,25 @@ class App:
                     updates['guest_id'] = int(guest_id_entry.get())
                 if room_id_entry.get():
                     updates['room_id'] = int(room_id_entry.get())
-                if status_entry.get():
-                    updates['status'] = status_entry.get()
+                if start_date_entry.get():
+                    try:
+                        start_date = datetime.datetime.strptime(start_date_entry.get(), "%d.%m.%Y").date()
+                        updates['start_date'] = start_date
+                    except ValueError:
+                        messagebox.showerror("Error", "Invalid Start Date format. Please use DD.MM.YYYY.")
+                        return
+                if end_date_entry.get():
+                    try:
+                        end_date = datetime.datetime.strptime(end_date_entry.get(), "%d.%m.%Y").date()
+                        updates['end_date'] = end_date
+                    except ValueError:
+                        messagebox.showerror("Error", "Invalid End Date format. Please use DD.MM.YYYY.")
+                        return
                 self.inventory_manager.update_booking_info(booking_id, **updates)
                 booking_window.destroy()
 
             submit_button = ttk.Button(booking_window, text="Submit", command=submit_update)
-            submit_button.grid(row=4, columnspan=2, pady=10)
+            submit_button.grid(row=5, columnspan=2, pady=10)
 
         else:
             messagebox.showerror("Error", "Only administrators can update bookings.")
