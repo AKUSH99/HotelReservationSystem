@@ -231,7 +231,7 @@ if __name__ == "__main__":
         zip_code = input("Zip: ")
         city = input("City: ")
 
-        user = user_manager.register_user(username, password, firstname, lastname, email, street, zip_code, city)
+        user = user_manager.register_guest(username, password, firstname, lastname, email, street, zip_code, city)
         if user:
             print("User successfully registered.")
         else:
