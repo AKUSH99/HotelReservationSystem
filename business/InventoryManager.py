@@ -128,7 +128,7 @@ class InventoryManager:
                 if 'guest_id' in kwargs:
                     booking.guest_id = kwargs['guest_id']
                 if 'room_id' in kwargs:
-                    booking.room_id = kwargs['room_id']
+                    booking.room_hotel_id = kwargs['room_id']
                 session.commit()
                 print(f"Buchung mit ID '{booking_id}' erfolgreich aktualisiert.")
             else:
@@ -515,7 +515,7 @@ class App:
             booking_list.heading("End Date", text="End Date")
 
             for booking in bookings:
-                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_id, booking.start_date, booking.end_date))
+                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_hotel_id, booking.start_date, booking.end_date))
 
             booking_list.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
@@ -638,7 +638,7 @@ class App:
             booking_list.heading("End Date", text="End Date")
 
             for booking in bookings:
-                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_id, booking.start_date, booking.end_date))
+                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_hotel_id, booking.start_date, booking.end_date))
 
             booking_list.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
         else:
