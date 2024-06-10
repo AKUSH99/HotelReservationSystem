@@ -139,6 +139,80 @@ class InventoryManager:
         finally:
             session.close()
 
+    def delete_booking(self, booking_id):
+        if not self.user_manager.is_admin():
+            print("Nur Administratoren können Buchungen löschen.")
+            return
+
+        session = self._session()
+        try:
+            session.execute(delete(Booking).where(Booking.id == booking_id))
+            session.commit()
+            print(f"Buchung mit ID '{booking_id}' erfolgreich gelöscht.")
+        except Exception as e:
+            session.rollback()
+            print(f"Fehler beim Löschen der Buchung: {e}")
+        finally:
+            session.close()
+
+    def get_user_bookings(self, email):
+        session = self._session()
+        try:
+            user = session.query(RegisteredGuest).filter_by(email=email).one_or_none()
+            if user:
+                bookings = session.query(Booking).filter_by(guest_id=user.id).all()
+                return bookings
+            else:
+                print(f"Keine Buchungen für die E-Mail {email} gefunden.")
+                return []
+        except Exception as e:
+            print(f"Fehler beim Abrufen der Buchungen: {e}")
+            return []
+        finally:
+            session.close()
+
+    def update_user_booking(self, email, booking_id, **kwargs):
+        session = self._session()
+        try:
+            user = session.query(RegisteredGuest).filter_by(email=email).one_or_none()
+            if user:
+                booking = session.query(Booking).filter_by(id=booking_id, guest_id=user.id).one_or_none()
+                if booking:
+                    if 'start_date' in kwargs:
+                        booking.start_date = kwargs['start_date']  # Use date object directly
+                    if 'end_date' in kwargs:
+                        booking.end_date = kwargs['end_date']  # Use date object directly
+                    session.commit()
+                    print(f"Buchung mit ID '{booking_id}' erfolgreich aktualisiert.")
+                else:
+                    print(f"Buchung mit ID '{booking_id}' nicht gefunden oder nicht berechtigt.")
+            else:
+                print(f"Kein Benutzer mit E-Mail {email} gefunden.")
+        except Exception as e:
+            session.rollback()
+            print(f"Fehler beim Aktualisieren der Buchung: {e}")
+        finally:
+            session.close()
+
+    def delete_user_booking(self, email, booking_id):
+        session = self._session()
+        try:
+            user = session.query(RegisteredGuest).filter_by(email=email).one_or_none()
+            if user:
+                booking = session.query(Booking).filter_by(id=booking_id, guest_id=user.id).one_or_none()
+                if booking:
+                    session.delete(booking)
+                    session.commit()
+                    print(f"Buchung mit ID '{booking_id}' erfolgreich gelöscht.")
+                else:
+                    print(f"Buchung mit ID '{booking_id}' nicht gefunden oder nicht berechtigt.")
+            else:
+                print(f"Kein Benutzer mit E-Mail {email} gefunden.")
+        except Exception as e:
+            session.rollback()
+            print(f"Fehler beim Löschen der Buchung: {e}")
+        finally:
+            session.close()
 
     def update_room_price(self, room_id, price):
         if not self.user_manager.is_admin():
@@ -272,6 +346,9 @@ class App:
         self.update_booking_button = ttk.Button(self.admin_frame, text="Update Booking", command=self.update_booking)
         self.update_booking_button.grid(row=4, columnspan=2, pady=5, padx=5)
 
+        self.delete_booking_button = ttk.Button(self.admin_frame, text="Delete Booking", command=self.delete_booking)
+        self.delete_booking_button.grid(row=5, columnspan=2, pady=5, padx=5)
+
         self.update_room_price_button = ttk.Button(self.admin_frame, text="Update Room Price", command=self.update_room_price)
         self.update_room_price_button.grid(row=6, columnspan=2, pady=5, padx=5)
 
@@ -280,20 +357,39 @@ class App:
 
         self.admin_frame.pack_forget()  # Hide admin actions initially
 
+        # User Actions Frame
+        self.user_frame = ttk.Frame(self.root)
+
+        self.view_bookings_button = ttk.Button(self.user_frame, text="View My Bookings", command=self.view_user_bookings)
+        self.view_bookings_button.grid(row=0, columnspan=2, pady=5, padx=5)
+
+        self.update_my_booking_button = ttk.Button(self.user_frame, text="Update My Booking", command=self.update_user_booking)
+        self.update_my_booking_button.grid(row=1, columnspan=2, pady=5, padx=5)
+
+        self.delete_my_booking_button = ttk.Button(self.user_frame, text="Delete My Booking", command=self.delete_user_booking)
+        self.delete_my_booking_button.grid(row=2, columnspan=2, pady=5, padx=5)
+
+        self.user_frame.pack_forget()  # Hide user actions initially
+
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
 
-        if self.user_manager.login(username, password):
+        user = self.user_manager.login(username, password)
+        if user:
             messagebox.showinfo("Login", "Login successful!")
             self.login_frame.pack_forget()
-            self.admin_frame.pack(pady=20, padx=20)
+            if self.user_manager.is_admin():
+                self.admin_frame.pack(pady=20, padx=20)
+            else:
+                self.user_frame.pack(pady=20, padx=20)
         else:
             messagebox.showerror("Login", "Login failed! Try again.")
 
     def logout(self):
         self.user_manager.logout()
         self.admin_frame.pack_forget()
+        self.user_frame.pack_forget()
         self.login_frame.pack(pady=20, padx=20)
         messagebox.showinfo("Logout", "Logged out successfully!")
 
@@ -411,15 +507,15 @@ class App:
             booking_window = tk.Toplevel(self.root)
             booking_window.title("Bookings")
 
-            booking_list = ttk.Treeview(booking_window, columns=("ID", "Guest ID", "Room ID", "Date", "Status"), show='headings')
+            booking_list = ttk.Treeview(booking_window, columns=("ID", "Guest ID", "Room ID", "Start Date", "End Date"), show='headings')
             booking_list.heading("ID", text="Booking ID")
             booking_list.heading("Guest ID", text="Guest ID")
             booking_list.heading("Room ID", text="Room ID")
-            booking_list.heading("Date", text="Date")
-            booking_list.heading("Status", text="Status")
+            booking_list.heading("Start Date", text="Start Date")
+            booking_list.heading("End Date", text="End Date")
 
             for booking in bookings:
-                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_hotel_id, booking.start_date, booking.end_date))
+                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_id, booking.start_date, booking.end_date))
 
             booking_list.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
@@ -443,8 +539,7 @@ class App:
             room_id_entry = ttk.Entry(booking_window)
             room_id_entry.grid(row=2, column=1, padx=5, pady=5)
 
-            ttk.Label(booking_window, text="New Start Date (DD.MM.YYYY, optional)").grid(row=3, column=0, padx=5,
-                                                                                         pady=5)
+            ttk.Label(booking_window, text="New Start Date (DD.MM.YYYY, optional)").grid(row=3, column=0, padx=5, pady=5)
             start_date_entry = ttk.Entry(booking_window)
             start_date_entry.grid(row=3, column=1, padx=5, pady=5)
 
@@ -482,7 +577,25 @@ class App:
         else:
             messagebox.showerror("Error", "Only administrators can update bookings.")
 
+    def delete_booking(self):
+        if self.user_manager.is_admin():
+            booking_window = tk.Toplevel(self.root)
+            booking_window.title("Delete Booking")
 
+            ttk.Label(booking_window, text="Booking ID").grid(row=0, column=0, padx=5, pady=5)
+            booking_id_entry = ttk.Entry(booking_window)
+            booking_id_entry.grid(row=0, column=1, padx=5, pady=5)
+
+            def submit_delete():
+                booking_id = int(booking_id_entry.get())
+                self.inventory_manager.delete_booking(booking_id)
+                booking_window.destroy()
+
+            submit_button = ttk.Button(booking_window, text="Submit", command=submit_delete)
+            submit_button.grid(row=1, columnspan=2, pady=10)
+
+        else:
+            messagebox.showerror("Error", "Only administrators can delete bookings.")
 
     def update_room_price(self):
         if self.user_manager.is_admin():
@@ -508,6 +621,93 @@ class App:
 
         else:
             messagebox.showerror("Error", "Only administrators can update room prices.")
+
+    def view_user_bookings(self):
+        user = self.user_manager.get_current_login()
+        if user:
+            email = user.username  # Assuming username is the email for simplicity
+            bookings = self.inventory_manager.get_user_bookings(email)
+            booking_window = tk.Toplevel(self.root)
+            booking_window.title("My Bookings")
+
+            booking_list = ttk.Treeview(booking_window, columns=("ID", "Guest ID", "Room ID", "Start Date", "End Date"), show='headings')
+            booking_list.heading("ID", text="Booking ID")
+            booking_list.heading("Guest ID", text="Guest ID")
+            booking_list.heading("Room ID", text="Room ID")
+            booking_list.heading("Start Date", text="Start Date")
+            booking_list.heading("End Date", text="End Date")
+
+            for booking in bookings:
+                booking_list.insert('', 'end', values=(booking.id, booking.guest_id, booking.room_id, booking.start_date, booking.end_date))
+
+            booking_list.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+        else:
+            messagebox.showerror("Error", "User not logged in or no bookings found.")
+
+    def update_user_booking(self):
+        user = self.user_manager.get_current_login()
+        if user:
+            email = user.username  # Assuming username is the email for simplicity
+            booking_window = tk.Toplevel(self.root)
+            booking_window.title("Update My Booking")
+
+            ttk.Label(booking_window, text="Booking ID").grid(row=0, column=0, padx=5, pady=5)
+            booking_id_entry = ttk.Entry(booking_window)
+            booking_id_entry.grid(row=0, column=1, padx=5, pady=5)
+
+            ttk.Label(booking_window, text="New Start Date (DD.MM.YYYY)").grid(row=1, column=0, padx=5, pady=5)
+            start_date_entry = ttk.Entry(booking_window)
+            start_date_entry.grid(row=1, column=1, padx=5, pady=5)
+
+            ttk.Label(booking_window, text="New End Date (DD.MM.YYYY)").grid(row=2, column=0, padx=5, pady=5)
+            end_date_entry = ttk.Entry(booking_window)
+            end_date_entry.grid(row=2, column=1, padx=5, pady=5)
+
+            def submit_update():
+                booking_id = int(booking_id_entry.get())
+                updates = {}
+                if start_date_entry.get():
+                    try:
+                        start_date = datetime.datetime.strptime(start_date_entry.get(), "%d.%m.%Y").date()
+                        updates['start_date'] = start_date
+                    except ValueError:
+                        messagebox.showerror("Error", "Invalid Start Date format. Please use DD.MM.YYYY.")
+                        return
+                if end_date_entry.get():
+                    try:
+                        end_date = datetime.datetime.strptime(end_date_entry.get(), "%d.%m.%Y").date()
+                        updates['end_date'] = end_date
+                    except ValueError:
+                        messagebox.showerror("Error", "Invalid End Date format. Please use DD.MM.YYYY.")
+                        return
+                self.inventory_manager.update_user_booking(email, booking_id, **updates)
+                booking_window.destroy()
+
+            submit_button = ttk.Button(booking_window, text="Submit", command=submit_update)
+            submit_button.grid(row=3, columnspan=2, pady=10)
+        else:
+            messagebox.showerror("Error", "User not logged in or no booking found.")
+
+    def delete_user_booking(self):
+        user = self.user_manager.get_current_login()
+        if user:
+            email = user.username  # Assuming username is the email for simplicity
+            booking_window = tk.Toplevel(self.root)
+            booking_window.title("Delete My Booking")
+
+            ttk.Label(booking_window, text="Booking ID").grid(row=0, column=0, padx=5, pady=5)
+            booking_id_entry = ttk.Entry(booking_window)
+            booking_id_entry.grid(row=0, column=1, padx=5, pady=5)
+
+            def submit_delete():
+                booking_id = int(booking_id_entry.get())
+                self.inventory_manager.delete_user_booking(email, booking_id)
+                booking_window.destroy()
+
+            submit_button = ttk.Button(booking_window, text="Submit", command=submit_delete)
+            submit_button.grid(row=1, columnspan=2, pady=10)
+        else:
+            messagebox.showerror("Error", "User not logged in or no booking found.")
 
 
 if __name__ == "__main__":
