@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 from pathlib import Path
 from sqlalchemy import create_engine, select, update, delete
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import sessionmaker, scoped_session, joinedload
 
 # Importiere die Modelle (stellen Sie sicher, dass diese korrekt importiert sind)
 from data_access.data_base import init_db
@@ -14,13 +14,26 @@ class InventoryManager:
         self._session = session
         self.user_manager = UserManager(self._session)
 
-    def add_hotel(self, name, stars, address_id):
+    def add_hotel(self, name, stars, street, zip_code, city):
         if not self.user_manager.is_admin():
             print("Nur Administratoren können neue Hotels hinzufügen.")
             return
 
         session = self._session()
         try:
+            # Check if the address already exists
+            address = session.query(Address).filter_by(street=street, zip=zip_code, city=city).first()
+
+            # If the address doesn't exist, create a new one
+            if not address:
+                new_address = Address(street=street, zip=zip_code, city=city)
+                session.add(new_address)
+                session.commit()
+                address_id = new_address.id
+            else:
+                address_id = address.id
+
+            # Add the new hotel with the address ID
             new_hotel = Hotel(name=name, stars=stars, address_id=address_id)
             session.add(new_hotel)
             session.commit()
@@ -47,7 +60,7 @@ class InventoryManager:
         finally:
             session.close()
 
-    def update_hotel_info(self, hotel_id, name=None, stars=None, address_id=None):
+    def update_hotel_info(self, hotel_id, name=None, stars=None, street=None, zip_code=None, city=None):
         if not self.user_manager.is_admin():
             print("Nur Administratoren können Hotelinformationen aktualisieren.")
             return
@@ -60,8 +73,22 @@ class InventoryManager:
                     hotel.name = name
                 if stars:
                     hotel.stars = stars
-                if address_id:
+                if street and zip_code and city:
+                    # Check if the new address already exists
+                    address = session.query(Address).filter_by(street=street, zip=zip_code, city=city).first()
+
+                    # If the address doesn't exist, create a new one
+                    if not address:
+                        new_address = Address(street=street, zip=zip_code, city=city)
+                        session.add(new_address)
+                        session.commit()
+                        address_id = new_address.id
+                    else:
+                        address_id = address.id
+
+                    # Assign the new address to the hotel
                     hotel.address_id = address_id
+
                 session.commit()
                 print(f"Hotel mit ID '{hotel_id}' erfolgreich aktualisiert.")
             else:
@@ -159,7 +186,7 @@ class UserManager:
         self._attempts_left -= 1
         if self._attempts_left >= 0:
             if self._current_login is None:
-                query = select(Login).where(Login.username == username).where(Login.password == password)
+                query = select(Login).options(joinedload(Login.role)).where(Login.username == username).where(Login.password == password)
                 result = self._session.execute(query).scalars().one_or_none()
                 self._current_login = result
                 return self._current_login
@@ -300,19 +327,29 @@ class App:
             stars_entry = ttk.Entry(hotel_window)
             stars_entry.grid(row=1, column=1, padx=5, pady=5)
 
-            ttk.Label(hotel_window, text="Address ID").grid(row=2, column=0, padx=5, pady=5)
-            address_id_entry = ttk.Entry(hotel_window)
-            address_id_entry.grid(row=2, column=1, padx=5, pady=5)
+            ttk.Label(hotel_window, text="Street").grid(row=2, column=0, padx=5, pady=5)
+            street_entry = ttk.Entry(hotel_window)
+            street_entry.grid(row=2, column=1, padx=5, pady=5)
+
+            ttk.Label(hotel_window, text="ZIP Code").grid(row=3, column=0, padx=5, pady=5)
+            zip_entry = ttk.Entry(hotel_window)
+            zip_entry.grid(row=3, column=1, padx=5, pady=5)
+
+            ttk.Label(hotel_window, text="City").grid(row=4, column=0, padx=5, pady=5)
+            city_entry = ttk.Entry(hotel_window)
+            city_entry.grid(row=4, column=1, padx=5, pady=5)
 
             def submit_hotel():
                 name = name_entry.get()
                 stars = int(stars_entry.get())
-                address_id = int(address_id_entry.get())
-                self.inventory_manager.add_hotel(name, stars, address_id)
+                street = street_entry.get()
+                zip_code = zip_entry.get()
+                city = city_entry.get()
+                self.inventory_manager.add_hotel(name, stars, street, zip_code, city)
                 hotel_window.destroy()
 
             submit_button = ttk.Button(hotel_window, text="Submit", command=submit_hotel)
-            submit_button.grid(row=3, columnspan=2, pady=10)
+            submit_button.grid(row=5, columnspan=2, pady=10)
 
         else:
             messagebox.showerror("Error", "Only administrators can add new hotels.")
