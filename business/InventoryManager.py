@@ -391,20 +391,33 @@ class App:
             stars_entry = ttk.Entry(hotel_window)
             stars_entry.grid(row=2, column=1, padx=5, pady=5)
 
-            ttk.Label(hotel_window, text="New Address ID (optional)").grid(row=3, column=0, padx=5, pady=5)
-            address_id_entry = ttk.Entry(hotel_window)
-            address_id_entry.grid(row=3, column=1, padx=5, pady=5)
+            ttk.Label(hotel_window, text="New Street (optional)").grid(row=3, column=0, padx=5, pady=5)
+            street_entry = ttk.Entry(hotel_window)
+            street_entry.grid(row=3, column=1, padx=5, pady=5)
+
+            ttk.Label(hotel_window, text="New ZIP Code (optional)").grid(row=4, column=0, padx=5, pady=5)
+            zip_entry = ttk.Entry(hotel_window)
+            zip_entry.grid(row=4, column=1, padx=5, pady=5)
+
+            ttk.Label(hotel_window, text="New City (optional)").grid(row=5, column=0, padx=5, pady=5)
+            city_entry = ttk.Entry(hotel_window)
+            city_entry.grid(row=5, column=1, padx=5, pady=5)
 
             def submit_update():
                 hotel_id = int(hotel_id_entry.get())
                 name = name_entry.get() if name_entry.get() else None
                 stars = int(stars_entry.get()) if stars_entry.get() else None
-                address_id = int(address_id_entry.get()) if address_id_entry.get() else None
-                self.inventory_manager.update_hotel_info(hotel_id, name=name, stars=stars, address_id=address_id)
+                street = street_entry.get() if street_entry.get() else None
+                zip_code = zip_entry.get() if zip_entry.get() else None
+                city = city_entry.get() if city_entry.get() else None
+
+                self.inventory_manager.update_hotel_info(
+                    hotel_id, name=name, stars=stars, street=street, zip_code=zip_code, city=city
+                )
                 hotel_window.destroy()
 
             submit_button = ttk.Button(hotel_window, text="Submit", command=submit_update)
-            submit_button.grid(row=4, columnspan=2, pady=10)
+            submit_button.grid(row=6, columnspan=2, pady=10)
 
         else:
             messagebox.showerror("Error", "Only administrators can update hotel info.")
