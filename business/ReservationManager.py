@@ -9,12 +9,17 @@ from data_access.data_base import init_db
 from pathlib import Path
 
 class ReservationManager:
-    def __init__(self, session):
-        self._session = session
+    def __init__(self, database_file):
+        # Initialisierung der Datenbankverbindung
+        self.database_path = Path(database_file)
+        if not self.database_path.is_file():
+            init_db(database_file, generate_example_data=True)
+        self.engine = create_engine(f"sqlite:///{database_file}", echo=False)
+        self.session = scoped_session(sessionmaker(bind=self.engine))
 
     def is_room_available(self, room_number, room_hotel_id, start_date, end_date):
         # Überprüft, ob das Zimmer im angegebenen Zeitraum im angegebenen Hotel verfügbar ist
-        bookings = self._session.query(Booking).filter(
+        bookings = self.session.query(Booking).filter(
             and_(
                 Booking.room_number == room_number,
                 Booking.room_hotel_id == room_hotel_id,
@@ -31,7 +36,7 @@ class ReservationManager:
         # User Story 1.3: Erstellt eine Buchung, wenn das Zimmer verfügbar ist
         start_date = datetime.strptime(start_date, '%Y-%m-%d')
         end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        if self.is_room_available(room_hotel_id, room_number, start_date, end_date):
+        if self.is_room_available(room_number, room_hotel_id, start_date, end_date):
             new_booking = Booking(
                 room_hotel_id=room_hotel_id,
                 room_number=room_number,
@@ -41,8 +46,8 @@ class ReservationManager:
                 end_date=end_date,
                 comment=comment
             )
-            self._session.add(new_booking)
-            self._session.commit()
+            self.session.add(new_booking)
+            self.session.commit()
             return f"Booking successfully created with ID: {new_booking.id}"
         else:
             return "Room is not available for the selected dates."
@@ -69,21 +74,21 @@ class ReservationManager:
 
     def get_booking_by_id(self, booking_id):
         # Methode, um eine Buchung anhand ihrer ID zu holen
-        return self._session.query(Booking).filter_by(id=int(booking_id)).first()
+        return self.session.query(Booking).filter_by(id=int(booking_id)).first()
 
     def create_guest(self, firstname, lastname, email):
         # Erstellt einen temporären Gast mit einer leeren Adresse
         empty_address = Address(street='', zip='', city='')
-        self._session.add(empty_address)
-        self._session.flush()  # Stellt sicher, dass die Adresse eine ID bekommt
+        self.session.add(empty_address)
+        self.session.flush()  # Stellt sicher, dass die Adresse eine ID bekommt
         new_guest = Guest(
             firstname=firstname,
             lastname=lastname,
             email=email,
             address_id=empty_address.id
         )
-        self._session.add(new_guest)
-        self._session.commit()
+        self.session.add(new_guest)
+        self.session.commit()
         return new_guest.id
 
     def validate_email(self, email):
@@ -106,19 +111,9 @@ if __name__ == "__main__":
     from business.SearchManager import SearchManager
     from business.UserManager import UserManager
 
-    # Initialisierung der Datenbankverbindung
-    database_path = Path('../data/database.db')
-    if not database_path.is_file():
-        init_db(str(database_path), generate_example_data=True)
-    engine = create_engine(f"sqlite:///{database_path}", echo=False)
-
-    session = scoped_session(sessionmaker(bind=engine))
-
-    reservation_manager = ReservationManager(session)
+    reservation_manager = ReservationManager('../data/database.db')
     search_manager = SearchManager('../data/database.db')
-    user_manager = UserManager(reservation_manager._session)
-
-
+    user_manager = UserManager(reservation_manager.session)
 
     # Interaktiver Prozess zur Auswahl der Buchungsoption
     print("Welcome! How would you like to proceed?")
@@ -167,7 +162,9 @@ if __name__ == "__main__":
             stars = int(stars)
 
         # Hier wird die Methode zum Suchen von Hotels aufgerufen
-        hotels = search_manager.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)
+        search_manager = SearchManager(reservation_manager.session)  # #geändert
+        hotels = search_manager.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)  # #geändert
+
         if not hotels:
             print("No hotels found for your criteria.")
         else:
@@ -209,7 +206,8 @@ if __name__ == "__main__":
                 print(result)
 
                 if "successfully" in result:
-                    booking_id = result.split()[-1]
+                    booking_id = int(
+                    result.split()[-1])  # Annahme: Die ID ist der letzte Teil der Erfolgsmeldung #geändert
                     booking = reservation_manager.get_booking_by_id(booking_id)
                     save_result = reservation_manager.save_booking_details(booking)
                     print(save_result)
@@ -321,6 +319,7 @@ if __name__ == "__main__":
         print("Log in to an existing account")
         input_username = input("Enter username: ")
         input_password = input("Enter password: ")
+        user_manager = UserManager(reservation_manager.session)  # #geändert
         login_result = user_manager.login(input_username, input_password)
         if login_result:
             print("Login successful!")
