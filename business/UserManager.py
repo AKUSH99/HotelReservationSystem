@@ -60,15 +60,18 @@ class UserManager():
         return registered_guest
 
     def create_admin(self, username, password):
-        query = select(Role).where(Role.name == "administrator")
-        role = self._session.execute(query).scalars().one()
-        try:
-            admin = Login(username=username, password=password, role=role)
-            self._session.add(admin)
-            self._session.commit()
-        except Exception as e:
-            self._session.rollback()
-            raise e
+        if self._current_login and self._current_login.role.name == "administrator":
+            query = select(Role).where(Role.name == "administrator")
+            role = self._session.execute(query).scalars().one()
+            try:
+                admin = Login(username=username, password=password, role=role)
+                self._session.add(admin)
+                self._session.commit()
+            except Exception as e:
+                self._session.rollback()
+                raise e
+        else:
+            raise PermissionError("Current user is not authorized to create an admin account")
 
     def get_current_login(self):
         return self._current_login
@@ -105,6 +108,19 @@ if __name__ == '__main__':
         print("No attempts left, program is closed!")
         sys.exit(1)
 
+    if user_manager._current_login.role and user_manager._current_login.role.name == "administrator":
+        register_admin = input("Do you want to register a new admin? (yes/no): ").strip().lower()
+        if register_admin == "yes":
+            admin_username = input("Enter new admin username: ")
+            admin_password = input("Enter new admin password: ")
+            try:
+                new_admin = user_manager.create_admin(admin_username, admin_password)
+                print(f"Admin created successfully.")
+            except ValueError as e:
+                print(e)
+            except PermissionError as e:
+                print(e)
+
     user_manager.logout()
     print("Goodbye!")
     print(user_manager.get_current_login())
@@ -120,7 +136,7 @@ if __name__ == '__main__':
     city = input("Enter your city: ")
 
     user_manager.register_guest(username, password, firstname, lastname, email, street, zip, city)
-    print("USERSTORY: Login")
+    print("Login")
     while user_manager.has_attempts_left():
         username = input("Enter your username: ")
         password = input("Enter your password: ")
