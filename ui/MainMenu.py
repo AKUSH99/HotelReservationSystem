@@ -5,11 +5,10 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-#from business.ReservationManager import ReservationManager
+from business.ReservationManager import ReservationManager
 from data_access.data_base import init_db
 from business.UserManager import UserManager
 from business.SearchManager import SearchManager
-#from ui.RegistrationUI import RegistrationUI
 from ui.SearchUI import SearchUI
 
 class AdminMenu():
@@ -107,7 +106,7 @@ class MainMenu():
                 print("Now you can book a Room for your stay.")
 
             case "3":
-                while True:  # Assuming you want to stay in this menu until an exit option is chosen
+                while True:
                     print("1. Show all Hotels")
                     print("2. Search by Name")
                     print("3. Exit")
@@ -155,7 +154,8 @@ if __name__ == '__main__':
     session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
     user_manager = UserManager(session)
     search_manager = SearchManager(session)
-    search_ui = SearchUI(session)
+    reservations_manager = ReservationManager(session)
+
 
 
     main_menu = MainMenu(session)
