@@ -9,15 +9,14 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from data_access.data_base import init_db
 from business.UserManager import UserManager
 from business.SearchManager import SearchManager
-from ui.SearchUI import SearchUI
 
 class AdminMenu():
     def __init__(self, main_menu):
         self._main_menu = main_menu
 
     def run(self):
-        print("ADMIN MENU!")
-        print("1. Logout")
+        print("Go to InventoryManager for the ADMIN Menu!")
+        print("You are logout!")
 
         user_in = input("Choose Option: ")
         match user_in:
@@ -78,7 +77,7 @@ class MainMenu():
     def __init__(self, session, back=None):
         self.session = session
         self._login = Login(self)
-        self._search_ui = SearchUI(session, self)
+        self._search_manager = SearchManager(session)
 
     def run(self):
         print("1. Login")
