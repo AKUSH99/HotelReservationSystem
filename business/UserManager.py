@@ -53,6 +53,7 @@ class UserManager():
             self._session.rollback()
             raise e
 
+    #Registrierte Gäste
     def get_guest_of(self, login):
         query = select(RegisteredGuest).where(RegisteredGuest.login == login)
         registered_guest = self._session.execute(query).scalars().one_or_none()
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
     user_manager = UserManager(session)
 
-    print("USERSTORY: Login")
+    print("Login")
     while user_manager.has_attempts_left():
         username = input("Enter your username: ")
         password = input("Enter your password: ")
@@ -108,7 +109,7 @@ if __name__ == '__main__':
     print("Goodbye!")
     print(user_manager.get_current_login())
 
-    print("USERSTORY: Register Guest")
+    print("Register as Guest")
     username = input("Enter your username: ")
     password = input("Enter your password: ")
     firstname = input("Enter your fristname: ")
@@ -135,6 +136,10 @@ if __name__ == '__main__':
     else:
         print("No attempts left, program is closed!")
         sys.exit(1)
+
+    user_manager.logout()
+    print("Thank your for visiting. Goodbye!")
+    print(user_manager.get_current_login())
 
 
 

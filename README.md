@@ -47,5 +47,7 @@ SearchManager und UserManager u.a. die folgenden User Stories:
 # Instructions:
 #Instruktion für uns, wie eure Applikation benutzt werden muss (Schritt-für-Schritt Anleitung insb. welches File(s) ausgeführt werden müssen).
 
+
+
 # Assumtions / Interpretations:
 #Annahmen und Interpretationen, falls welche vorhanden sind

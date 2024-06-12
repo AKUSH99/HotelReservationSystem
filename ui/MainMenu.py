@@ -153,15 +153,13 @@ class Application():
 
 if __name__ == '__main__':
     print("Start program...")
-    db_file = "./data/test.db"
+    db_file = "./data/database.db"
     database_path = Path(db_file)
     if not database_path.is_file():
         init_db(db_file, generate_example_data=True)
     session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
     user_manager = UserManager(session)
-    #reservation_manager = ReservationManager(session)
     search_manager = SearchManager(session)
-    #registration_ui = RegistrationUI(session)
     search_ui = SearchUI(session)
 
 
