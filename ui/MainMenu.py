@@ -5,6 +5,7 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
+#from business.ReservationManager import ReservationManager
 from data_access.data_base import init_db
 from business.UserManager import UserManager
 from business.SearchManager import SearchManager
@@ -79,9 +80,9 @@ class MainMenu():
         self._search_manager = SearchManager(session)
 
     def run(self):
-        print("1. Login")
-        print("2. Register as Guest")
-        print("3. Search Hotels")
+        print("1. Login to an existing account")
+        print("2. Create an account as a registered user")
+        print("3. Search Hotels without register")
         print("4. Exit")
 
         user_in = input("Choose Option: ")
@@ -89,8 +90,9 @@ class MainMenu():
             case "1":
                 return self._login
 
+
             case "2":
-                print("Register as Guest")
+                print("Create an account as a registered user")
                 username = input("Enter your username: ")
                 password = input("Enter your password: ")
                 firstname = input("Enter your firstname: ")
@@ -101,10 +103,36 @@ class MainMenu():
                 city = input("Enter your city: ")
 
                 print("Registration successful!")
-                print("Now you can book a Room for your stay.")
+                print("Remark: To book a room u have to register as a user!")
+
+                while True:
+                    print("To book a room visit RegistrationManager.")
+                    print("1. Show all Hotels")
+                    print("2. Search by Name")
+                    print("3. Book a Room for your stay")
+                    print("4. Exit")
+
+                    choice = input("Choose Option (1-3): ")
+                    match choice:
+                        case "1":
+                            hotels = search_manager.get_all_hotels()
+                            for hotel in hotels:
+                                print(hotel)
+                        case "2":
+                            searched_name = input("Enter hotel name: ")
+                            hotels = search_manager.get_hotels_by_name(searched_name)
+                            for hotel in hotels:
+                                print(hotel)
+
+                        case "4":
+                            print("Thank you for visiting. Goodbye!")
+                            return  # Return to the previous menu
+                        case _:
+                            print("Invalid option, please try again.")
 
             case "3":
                 while True:
+                    print("Remark: To book a room u have to register as a user!")
                     print("1. Show all Hotels")
                     print("2. Search by Name")
                     print("3. Exit")
@@ -152,7 +180,7 @@ if __name__ == '__main__':
     session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
     user_manager = UserManager(session)
     search_manager = SearchManager(session)
-
+    #reservations_manager = ReservationManager(session)
 
 
 

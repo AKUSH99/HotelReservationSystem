@@ -9,13 +9,8 @@ from data_access.data_base import init_db
 from pathlib import Path
 
 class ReservationManager:
-    def __init__(self, database_file):
-        # Initialisierung der Datenbankverbindung
-        self.database_path = Path(database_file)
-        if not self.database_path.is_file():
-            init_db(database_file, generate_example_data=True)
-        self.engine = create_engine(f"sqlite:///{database_file}", echo=False)
-        self.session = scoped_session(sessionmaker(bind=self.engine))
+    def __init__(self, session):
+        self.session = session
 
     def is_room_available(self, room_number, room_hotel_id, start_date, end_date):
         # Überprüft, ob das Zimmer im angegebenen Zeitraum im angegebenen Hotel verfügbar ist
@@ -231,7 +226,7 @@ if __name__ == "__main__":
         zip_code = input("Zip: ")
         city = input("City: ")
 
-        user = user_manager.register_guest(username, password, firstname, lastname, email, street, zip_code, city)
+        user = user_manager.register_user(username, password, firstname, lastname, email, street, zip_code, city)
         if user:
             print("User successfully registered.")
         else:

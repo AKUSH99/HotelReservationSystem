@@ -34,21 +34,32 @@ class UserManager():
         self._attempts_left = self._max_attempts
         self._current_login = None
 
-    def register_guest(self, username, password, firstname, lastname, email, street, zip, city):
-        query = select(Role).where(Role.name == "registered_user")
-        role = self._session.execute(query).scalars().one()
+    def register_user(self, username, password, firstname, lastname, email, street, zip_code, city):  # #geändert
+        new_address = Address(street=street, zip=zip_code, city=city)  # #geändert
+        new_user = RegisteredGuest(firstname=firstname, lastname=lastname, email=email, address=new_address)  # #geändert
+        new_login = Login(username=username, password=password)  # #geändert
+        self._session.add(new_address)  # #geändert
+        self._session.add(new_user)  # #geändert
+        self._session.add(new_login)  # #geändert
+        # Verknüpfung des neuen Benutzers mit dem Login, falls erforderlich
+        new_user.login = new_login  # #geändert
+        self._session.commit()  # #geändert
+        return new_user  # #geändert
+
+    def register_guest(self, firstname, lastname, email, street, zip, city):  # #geändert
         try:
-            registered_guest = RegisteredGuest(
+            new_address = Address(street=street, zip=zip, city=city)  # #geändert
+            guest = RegisteredGuest(
                 firstname=firstname,
                 lastname=lastname,
                 email=email,
-                address=Address(street=street, zip=zip, city=city),
-                login=Login(username=username, password=password, role=role)
-            )
-            self._session.add(registered_guest)
-            self._session.commit()
-            self._session.refresh(registered_guest)  # Aktualisieren Sie die Sitzung, um die neuen Daten zu laden
-            return registered_guest
+                address=new_address
+            )  # #geändert
+            self._session.add(new_address)  # #geändert
+            self._session.add(guest)  # #geändert
+            self._session.commit()  # #geändert
+            self._session.refresh(guest)  # #geändert
+            return guest  # #geändert
         except Exception as e:
             self._session.rollback()
             raise e
