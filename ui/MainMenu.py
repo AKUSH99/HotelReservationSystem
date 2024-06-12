@@ -96,7 +96,7 @@ class MainMenu():
                 print("Register as Guest")
                 username = input("Enter your username: ")
                 password = input("Enter your password: ")
-                firstname = input("Enter your fristname: ")
+                firstname = input("Enter your firstname: ")
                 lastname = input("Enter your lastname: ")
                 email = input("Enter your email: ")
                 street = input("Enter your street: ")
@@ -107,36 +107,31 @@ class MainMenu():
                 print("Now you can book a Room for your stay.")
 
             case "3":
-                print("1. Show all Hotels")
-                print("2. Search by Name")
-                print("3. Exit")
+                while True:  # Assuming you want to stay in this menu until an exit option is chosen
+                    print("1. Show all Hotels")
+                    print("2. Search by Name")
+                    print("3. Exit")
 
-                choice = input("Choose Option (1-3): ")
-                return choice
-
-                match (choice):
-                    case "1":
-                        hotels = self.search_manager.get_all_hotels()
-                        for hotel in hotels:
-                            print(hotel)
-                        return self
-                    case "2":
-                        searched_name = input("Enter hotel name: ")
-                        hotels = self.search_manager.get_hotels_by_name(searched_name)
-                        for hotel in hotels:
-                            print(hotel)
-                        return self
-                    case "3":
-                        print("Thank you for visiting. Goodbye!")
-                        return self.back
-
-                    case _:
-                        print("Invalid")
-                        return self
-
+                    choice = input("Choose Option (1-3): ")
+                    match choice:
+                        case "1":
+                            hotels = search_manager.get_all_hotels()
+                            for hotel in hotels:
+                                print(hotel)
+                        case "2":
+                            searched_name = input("Enter hotel name: ")
+                            hotels = search_manager.get_hotels_by_name(searched_name)
+                            for hotel in hotels:
+                                print(hotel)
+                        case "3":
+                            print("Thank you for visiting. Goodbye!")
+                            return  # Return to the previous menu
+                        case _:
+                            print("Invalid option, please try again.")
 
             case "4":
                 print("Thank you for visiting. See you next time!")
+                sys.exit(0)
 
 class Application():
     def __init__(self, start):
