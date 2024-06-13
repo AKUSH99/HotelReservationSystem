@@ -82,7 +82,7 @@ class MainMenu():
     def run(self):
         print("1. Login to an existing account")
         print("2. Create an account as a registered user")
-        print("3. Search Hotels without register")
+        print("3. Search Hotels (without register)")
         print("4. Exit")
 
         user_in = input("Choose Option: ")
