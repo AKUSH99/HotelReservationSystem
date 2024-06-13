@@ -88,18 +88,19 @@ Hotelsuche:
 # UserManager
 
 ## Anleitung:
-UserManager ausführen.
-Login (Admin und registrierter Gast)
-•	Username und Passwort eingeben, z.B. admin / password (3 Versuche möglich)
-•	User wird eingeloggt
-•	User wird ausgeloggt
-Register as Guest
-•	Username, Passwort, Vorname, Nachname, E-mailadresse, Strasse, PLZ und Ort erfassen.
-•	Der neu erfasste Gast kann sich nun mit den Logindaten einloggen.
-•	Der registrierte Gast wird eingeloggt
-•	Der registrierte Gast wird ausgeloggt
-Um Buchungen einzusehen/anzupassen usw. gehe zum InventoryManager.
+UserManager ausführen! Siehe Konsole.
 
+Login als Admin mit username und password: admin/password
+	- erfolgreich eingeloggt
+	- Folgende Meldung erscheint "Do you want to register a new admin? (yes/no): "
+    	-"yes" eingeben
+	  		-ein neues username und password für den neuen Admin eingeben.
+	  		-Das neue Admin Login wird erfolgreich registriert.
+	  		-Programm wird beendet.
+  		-"no" eingeben
+-			-Admin wird ausgeloggt. Programm wrid beendet.
+
+Login als registrierter User auch möglich. Es können aber keine weiteren Schritte ausgeführt werden. 
 
 
 # InventoryManager
@@ -186,14 +187,19 @@ Neues Fenster poppt auf:
 
 ## Anleitung:
 
-MainMenu ausführen! UI-Fenster geht auf.
+MainMenu ausführen! Siehe Konsole.
 
 Option "1. Login to an existing account" eingeben, um in ein bereits existierendes Konto einzuloggen
 
 	Username und Password eingeben: registrierter admin: admin /password
-    - Siehe Konsole: Sie werden eingeloggt als Administrator und dann wieder ausgeloggt.
-	- Das Admin Menu befindet sich in InventoryManager. Um das Admin MainMenu zu verwalten, InventoryManager starten!
-	
+    - Siehe Konsole: Sie werden eingeloggt.
+	- Folgende Optionen erschienen
+		1. ADMIN MENU!
+		- Das Admin Menu befindet sich in InventoryManager. Um das Admin MainMenu zu verwalten, InventoryManager starten!
+		2. To register a new admin!
+		- Um einen neuen Admin anzulegen, UserManager starten!
+		3. Logout and return to Main Menu!
+		- Admin wird ausgelogt und kehrt zurück zum Main Menu.
  
 	Username und Password eingeben: registrierter user: sabrina.schmidt@bluemail.ch /SuperSecret
 	-Siehe Konsole: Sie werden eingeloggt als registrierter User.

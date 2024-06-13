@@ -15,14 +15,23 @@ class AdminMenu():
         self._main_menu = main_menu
 
     def run(self):
-        print("Go to InventoryManager for the ADMIN Menu!")
-        print("You are logout!")
+        print("1. ADMIN MENU!")
+        print("2. To register a new admin!")
+        print("3. Logout and return to Main Menu!")
 
-        user_in = input("Choose Option: ")
+        user_in = input("Choose Option (1-2): ")
         match user_in:
             case "1":
+                print("To manage Hotels, Rooms and Bookings go to InventoryManager!")
+
+            case "2":
+                print("To register a new admin go to UserManager!")
+
+            case "3":
                 user_manager.logout()
+                print("You are logout!")
                 return self._main_menu
+
 
 class RegisteredHomeMenu():
 
@@ -36,7 +45,7 @@ class RegisteredHomeMenu():
         print("4. Manage Bookings")
         print("5. Exit")
 
-        user_in = input("Choose Option (1-3): ")
+        user_in = input("Choose Option (1-5): ")
         match user_in:
             case "1":
                 user_manager.logout()
