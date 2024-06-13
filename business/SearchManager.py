@@ -67,8 +67,7 @@ class SearchManager:
 
         return hotels_with_available_rooms
 
-    def search_hotels_by_city_guests_stars_wo_avlblty(self, city=None, max_guest=1,
-                                                stars=None):
+    def search_hotels_by_city_guests_stars_wo_avlblty(self, city=None, max_guest=1, stars=None):
 
         # Hauptabfrage für Hotels
         query = select(Hotel).distinct()

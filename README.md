@@ -186,14 +186,55 @@ Neues Fenster poppt auf:
 
 ## Anleitung:
 
-MainMenu ausführen.
-Option 1 wählen:
-Login (Admin und bereits registrierter Gast)
-•	Username und Passwort eingeben, z.B. admin / password (3 Versuche möglich)
-•	User wird eingeloggt
-•	User wird ausgeloggt
-Option 2 wählen:
+MainMenu ausführen! UI-Fenster geht auf.
 
+Option "1. Login to an existing account" eingeben, um in ein bereits existierendes Konto einzuloggen
+
+	Username und Password eingeben: registrierter admin: admin /password
+    - Siehe Konsole: Sie werden eingeloggt als Administrator und dann wieder ausgeloggt.
+	- Das Admin Menu befindet sich in InventoryManager. Um das Admin MainMenu zu verwalten, InventoryManager starten!
+	
+ 
+	Username und Password eingeben: registrierter user: sabrina.schmidt@bluemail.ch /SuperSecret
+	-Siehe Konsole: Sie werden eingeloggt als registrierter User.
+	-Folgende Optionen erscheinen:
+		1. Logout and return to Main Menu!
+		- Sie werden ausgeloggt und kehren zurück zum Main Menu.
+		2. Show all Hotels
+		- Alle Hotels werden angezeigt. Um eine detaillierte Suche durchzuführen, SearchManager starten.
+		3. Make a Reservation
+		- Um eine Reservation durchzuführen, ReservationManager starten.
+		4. Manage Bookings
+		- Um Buchungen zu verwalten, InventoryManager starten.
+		5. Exit
+		- Sie werden aus dem System ausgeloggt.
+ 
+Option "2. Create an account as a registered user" um einen registrierten user zu erstellen.
+	- username, password, fristname, lastname, email, street, zip und city eingeben.
+  	- Sie werden eingeloggt.
+  	-Folgende Optionen erscheinen:
+      	1. Show all Hotels
+      	- Alle Hotels werden angezeigt. Um eine detaillierte Suche durchzuführen, SearchManager starten
+      	2. Search by Name
+      	- Name eines existierenden Hotel eingeben. Alle angeben zu diesem Hotel erscheinen.
+      	3. Book a Room for your stay
+      	- Um eine Reservation durchzuführen, ReservationManager starten.
+      	4. Exit
+      	- Sie werden aus dem System ausgeloggt.
+
+Option "3. Search Hotels (without register)", um alle Hotels anzuschauen und nach Namen zu recharchieren.
+	-Folgende Optionen erscheinen:
+		1. Show all Hotels
+		- Alle Hotels werden angezeigt. Um eine detailierte Suche durchzuführen, SearchManager starten
+		2. Search by Name
+		- Name eines existierenden Hotel eingeben. Alle angeben zu diesem Hotel erscheinen.
+		3. Exit
+		-System wird geschlossen.
+
+
+Option "4. Exit" wählen, um das System zu beenden.
+	-Folgende Meldung erscheint "Thank you for visiting. See you next time!" 
+	-System wird geschlossen.
 
 
 # Assumtions / Interpretations:
