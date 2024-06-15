@@ -1,12 +1,9 @@
 from pathlib import Path
-
 from sqlalchemy import create_engine, select, func, and_, or_, not_
 from sqlalchemy.orm import sessionmaker, scoped_session, aliased
-
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime, timedelta
-
 from data_models.models import *
 from data_access.data_base import init_db
 
@@ -15,7 +12,7 @@ class SearchManager:
     def __init__(self, session):
         self._session = session
 
-    def search_hotels_by_city_date_guests_stars(self, city=None, start_date=None, end_date=None, max_guest=1, stars=None):
+    def search_hotels_by_city_date_guests_stars(self, city=None, start_date=None, end_date=None, max_guest=None, stars=None):
         # Aliase für die Tabellen
         HotelAlias = aliased(Hotel, name='hotel_alias')
         AddressAlias = aliased(Address, name='address_alias')
@@ -26,9 +23,13 @@ class SearchManager:
         query = select(HotelAlias).distinct()
 
         if stars is not None:
-            query = query.where(HotelAlias.stars >= stars)
+            query = query.where(HotelAlias.stars == stars)
         if city is not None:
             query = query.join(AddressAlias).where(func.lower(AddressAlias.city) == city.lower())
+
+        #Test der ersten Query
+        # test_query = self._session.execute(query).scalars().all()
+        # print(f"Resultat der ersten Test-Query: {test_query}")
 
         if start_date is not None:
             # Subquery für gebuchte Räume
@@ -45,35 +46,47 @@ class SearchManager:
         # Hauptabfrage für verfügbare Räume
         available_rooms_query = select(RoomAlias).join(HotelAlias).where(not_(RoomAlias.id.in_(subquery_booked_rooms)))
 
-        if max_guest != 1:
+        if max_guest is not None:
             available_rooms_query = available_rooms_query.where(RoomAlias.max_guests >= max_guest)
 
         if city is not None:
             available_rooms_query = available_rooms_query.join(AddressAlias).where(
                 func.lower(AddressAlias.city) == city.lower())
+
         if stars is not None:
             available_rooms_query = available_rooms_query.where(HotelAlias.stars >= stars)
 
         # Execute the query and get available rooms
         available_rooms = self._session.execute(available_rooms_query).scalars().all()
+        # print(f"Available rooms: {available_rooms}")
 
         # Get unique hotels with available rooms
         hotel_ids_with_available_rooms = {room.hotel_id for room in available_rooms}
+        #Test 3
+        # print(f"Test 3: {hotel_ids_with_available_rooms}")
 
         # Filter the hotels query to only include hotels with available rooms
         if hotel_ids_with_available_rooms:
             query = query.where(HotelAlias.id.in_(hotel_ids_with_available_rooms))
+            # Execute the query and return the results
+            hotels_with_available_rooms = self._session.execute(query).scalars().all()
 
-        # Execute the query and return the results
-        hotels_with_available_rooms = self._session.execute(query).scalars().all()
+            for h in hotels_with_available_rooms:
+                print(
+                    f"ID: {h.id} - {h.name} - {h.stars} Sterne - {h.address.street}, {h.address.zip} {h.address.city}")
 
-        for h in hotels_with_available_rooms:
-            print(f"ID: {h.id} - {h.name} - {h.stars} Sterne - {h.address.street}, {h.address.zip} {h.address.city}")
+            return hotels_with_available_rooms
+        else:
+            print("There are no available hotels matching given criteria.")
 
-        return hotels_with_available_rooms
 
-    def search_rooms_by_availability(self, start_date: datetime, end_date: datetime, hotel: Hotel = None):
+
+    def search_rooms_by_availability(self, start_date: datetime, end_date: datetime, hotel: Hotel = None, max_guest = None):
         query = select(Room)
+
+        if max_guest is not None:
+            query = query.where(Room.max_guests >= max_guest)
+
         if hotel is not None:
             query = query.where(Room.hotel_id == hotel.id)
 
@@ -193,7 +206,7 @@ class HotelReservationApp(tk.Tk):
             messagebox.showinfo("No results", "No hotels found for your criteria.")
             return
 
-        self.show_hotels(hotels, start_date, end_date)
+        self.show_hotels(hotels, start_date, end_date, max_guest)
 
     def get_valid_date(self, date_str):
         if not date_str:
@@ -203,7 +216,7 @@ class HotelReservationApp(tk.Tk):
         except ValueError:
             return None
 
-    def show_hotels(self, hotels, start_date, end_date):
+    def show_hotels(self, hotels, start_date, end_date, max_guest):
         self.hotels_window = tk.Toplevel(self)
         self.hotels_window.title("Select a Hotel")
         self.hotels_window.geometry("600x400")
@@ -216,20 +229,20 @@ class HotelReservationApp(tk.Tk):
         self.hotel_id_entry = tk.Entry(self.hotels_window)
         self.hotel_id_entry.grid(row=i + 2, column=0)
         self.select_hotel_button = tk.Button(self.hotels_window, text="Select Hotel",
-                                             command=lambda: self.select_hotel(hotels, start_date, end_date))
+                                             command=lambda: self.select_hotel(hotels, start_date, end_date, max_guest))
         self.select_hotel_button.grid(row=i + 2, column=1)
 
-    def select_hotel(self, hotels, start_date, end_date):
+    def select_hotel(self, hotels, start_date, end_date, max_guest):
         hotel_id = int(self.hotel_id_entry.get())
         selected_hotel = next((hotel for hotel in hotels if hotel.id == hotel_id), None)
         if not selected_hotel:
             messagebox.showerror("Invalid ID", "Invalid hotel ID.")
             return
 
-        self.show_rooms(selected_hotel, start_date, end_date)
+        self.show_rooms(selected_hotel, start_date, end_date, max_guest)
 
-    def show_rooms(self, hotel, start_date, end_date):
-        available_rooms = self.search_manager.search_rooms_by_availability(start_date, end_date, hotel)
+    def show_rooms(self, hotel, start_date, end_date, max_guest):
+        available_rooms = self.search_manager.search_rooms_by_availability(start_date, end_date, hotel, max_guest)
         if not available_rooms:
             messagebox.showinfo("No results", "No available rooms found.")
             return
@@ -295,6 +308,9 @@ if __name__ == "__main__":
     app = HotelReservationApp(search_manager)
     app.mainloop()
 
+
+#Terminal UI (zum Aktivieren auskommentieren rückgängig machen und obenstehendes Main auskommentieren):
+#
 # if __name__ == "__main__":
 #     db_file = "../data/database.db"
 #         # Initialisierung der Datenbankverbindung
@@ -319,7 +335,6 @@ if __name__ == "__main__":
 #             except ValueError:
 #                 print("Invalid date format. Please enter the date in YYYY-MM-DD format.")
 #
-# #Terminal UI (zum Aktivieren auskommentieren rückgängig machen):
 #     print("Welcome to the hotel search!")
 #
 #     print("Please enter the desired attributes.")
@@ -355,7 +370,7 @@ if __name__ == "__main__":
 #         exit()
 #
 #     print(f"Searching for available rooms in {selected_hotel.name} from {start_date} to {end_date}.")
-#     available_rooms = search_manager.search_rooms_by_availability(start_date, end_date, selected_hotel)
+#     available_rooms = search_manager.search_rooms_by_availability(start_date, end_date, selected_hotel, max_guest)
 #     if not available_rooms:
 #         print("No available rooms found.")
 #     else:

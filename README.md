@@ -100,7 +100,7 @@ Hotelsuche:
 - Datumsangaben erfassen (Start und Enddatum, Format YYYY.MM.DD)
 - Danach kann ein Hotel ausgewählt werden anhand der ID 
 - Aus den verfügbaren Zimmern des gewählten Hotels kann das gewünschte ausgewählt werden 
-- Daraufhin wird die Buchung in die Datenbank geschrieben, die Booking ID wird angezeigt und ein CSV-File mit den Buchungsdetails erstellt
+- Daraufhin wird die Buchung in die Datenbank geschrieben, die Booking ID wird angezeigt und ein CSV-File mit den Buchungsdetails erstellt (Pfad: //..business/Bookings)).
 
 2: «Register as a new user» - Buchung mit Registrierung als Nutzer (erhält ein Login)
 - Vorname, Nachname und E-Mail Adresse erfassen 
@@ -109,7 +109,7 @@ Hotelsuche:
 - Anschliessend Suche nach Hotel mit der Angabe der Stadt, Anzahl Gäste, Reisedaten und optional Sterne 
 - Anzeige der passenden Hotels, die Hotel ID wird ausgewählt 
 - Es folgt eine Liste der verfügbaren Zimmer, aus welchen anhand der ID eines ausgewählt werden kann 
-- Daraufhin wird die Buchung wiederum in die Datenbank geschrieben, die Booking ID wird angezeigt und ein CSV-File mit den Buchungsdetails erstellt
+- Daraufhin wird die Buchung wiederum in die Datenbank geschrieben, die Booking ID wird angezeigt und ein CSV-File mit den Buchungsdetails erstellt (Pfad: //..business/Bookings)).
 
 3: “Log in to an existing account” – Einloggen in einen bestehenden Account (hat bereits ein Login)
 - Eingabe des Nutzernamens (Beispiel: sabrina.schmidt@bluemail.ch 
@@ -117,7 +117,7 @@ Hotelsuche:
 - Anschliessend Suche nach Hotel mit der Angabe der Stadt, Anzahl Gäste, Reisedaten und optional Sterne 
 - Anzeige der passenden Hotels, die Hotel ID wird ausgewählt 
 - Es folgt eine Liste der verfügbaren Zimmer, aus welchen anhand der ID eines ausgewählt werden kann 
-- Daraufhin wird die Buchung wiederum in die Datenbank geschrieben, die Booking ID wird angezeigt und ein CSV-File mit den Buchungsdetails erstellt
+- Daraufhin wird die Buchung wiederum in die Datenbank geschrieben, die Booking ID wird angezeigt und ein CSV-File mit den Buchungsdetails erstellt (Pfad: //..business/Bookings)).
 
 # UserManager
 

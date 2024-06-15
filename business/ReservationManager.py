@@ -12,6 +12,9 @@ from business.UserManager import UserManager
 from data_models.models import Booking, Room, Hotel, Guest, RegisteredGuest, Address, Login, Role
 from data_access.data_base import init_db
 
+base_directory = Path('Bookings')
+base_directory.mkdir(parents=True, exist_ok=True)
+
 
 class ReservationManager:
     def __init__(self, session):
@@ -65,7 +68,7 @@ class ReservationManager:
                 ["end_date", booking.end_date.strftime('%Y-%m-%d')],
                 ["comment", booking.comment]
             ]
-            file_path = f'booking_{booking.id}_details.csv'
+            file_path = base_directory / f'booking_{booking.id}_details.csv'
             with open(file_path, 'w', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerows(booking_details)
