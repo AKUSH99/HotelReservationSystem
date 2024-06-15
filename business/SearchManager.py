@@ -114,6 +114,18 @@ class SearchManager:
         query = query.where(Room.id.not_in(query_booked_rooms))
         results = self._session.execute(query).scalars().all()
         return results
+    def get_room_details(self, room_id):
+        room = self._session.query(Room).filter_by(id=room_id).first()
+        if room:
+            return {
+                "number": room.number,
+                "type": room.type,
+                "max_guests": room.max_guests,
+                "description": room.description,
+                "amenities": room.amenities,
+                "price": room.price
+            }
+        return None
 
     def get_rooms_by_hotel(self, hotel_id, max_guest):
         query = select(
@@ -196,12 +208,8 @@ class HotelReservationApp(tk.Tk):
         start_date = self.get_valid_date(self.start_date_entry.get())
         end_date = self.get_valid_date(self.end_date_entry.get())
 
-        # Remove the requirement for start_date and end_date
-        # if not (start_date and end_date):
-        #     messagebox.showerror("Invalid date", "Please enter valid start and end dates in YYYY-MM-DD format.")
-        #     return
-
-        hotels = self.search_manager.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)
+        hotels = self.search_manager.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest,
+                                                                             stars)
         if not hotels:
             messagebox.showinfo("No results", "No hotels found for your criteria.")
             return
@@ -224,12 +232,13 @@ class HotelReservationApp(tk.Tk):
         tk.Label(self.hotels_window, text="Please select a hotel by ID:").grid(row=0, column=0, columnspan=2, pady=10)
 
         for i, hotel in enumerate(hotels):
-            tk.Label(self.hotels_window, text=f"ID: {hotel.id} - {hotel.name}").grid(row=i+1, column=0, sticky=tk.W)
+            tk.Label(self.hotels_window, text=f"ID: {hotel.id} - {hotel.name}").grid(row=i + 1, column=0, sticky=tk.W)
 
         self.hotel_id_entry = tk.Entry(self.hotels_window)
-        self.hotel_id_entry.grid(row=i+2, column=0)
-        self.select_hotel_button = tk.Button(self.hotels_window, text="Select Hotel", command=lambda: self.select_hotel(hotels, start_date, end_date))
-        self.select_hotel_button.grid(row=i+2, column=1)
+        self.hotel_id_entry.grid(row=i + 2, column=0)
+        self.select_hotel_button = tk.Button(self.hotels_window, text="Select Hotel",
+                                             command=lambda: self.select_hotel(hotels, start_date, end_date))
+        self.select_hotel_button.grid(row=i + 2, column=1)
 
     def select_hotel(self, hotels, start_date, end_date):
         hotel_id = int(self.hotel_id_entry.get())
@@ -250,15 +259,19 @@ class HotelReservationApp(tk.Tk):
         self.rooms_window.title("Select a Room")
         self.rooms_window.geometry("600x400")
 
-        tk.Label(self.rooms_window, text=f"Rooms available in {hotel.name}:").grid(row=0, column=0, columnspan=2, pady=10)
+        tk.Label(self.rooms_window, text=f"Rooms available in {hotel.name}:").grid(row=0, column=0, columnspan=2,
+                                                                                   pady=10)
 
         for i, room in enumerate(available_rooms):
-            tk.Label(self.rooms_window, text=f"ID: {room.id} - {room.number} - {room.max_guests} guests - {room.description}").grid(row=i+1, column=0, sticky=tk.W)
+            tk.Label(self.rooms_window,
+                     text=f"ID: {room.id} - {room.number} - {room.max_guests} guests - {room.description}").grid(
+                row=i + 1, column=0, sticky=tk.W)
 
         self.room_id_entry = tk.Entry(self.rooms_window)
-        self.room_id_entry.grid(row=i+2, column=0)
-        self.select_room_button = tk.Button(self.rooms_window, text="Select Room", command=lambda: self.select_room(available_rooms))
-        self.select_room_button.grid(row=i+2, column=1)
+        self.room_id_entry.grid(row=i + 2, column=0)
+        self.select_room_button = tk.Button(self.rooms_window, text="Select Room",
+                                            command=lambda: self.select_room(available_rooms))
+        self.select_room_button.grid(row=i + 2, column=1)
 
     def select_room(self, rooms):
         room_id = int(self.room_id_entry.get())
@@ -267,7 +280,29 @@ class HotelReservationApp(tk.Tk):
             messagebox.showerror("Invalid ID", "Invalid room ID.")
             return
 
-        messagebox.showinfo("Room Selected", f"Selected Room: {selected_room.hotel.name} - ID {selected_room.id} - Room number {selected_room.number} - {selected_room.max_guests} guests - {selected_room.description}")
+        self.show_room_details(selected_room)
+
+    def show_room_details(self, room):
+        room_details = self.search_manager.get_room_details(room.id)
+
+        details_window = tk.Toplevel(self)
+        details_window.title("Room Details")
+        details_window.geometry("600x400")
+
+        if room_details:
+            details = (
+                f"Room Number: {room_details['number']}\n"
+                f"Room Type: {room_details['type']}\n"
+                f"Max Guests: {room_details['max_guests']}\n"
+                f"Description: {room_details['description']}\n"
+                f"Amenities: {room_details['amenities']}\n"
+                f"Price: {room_details['price']}"
+            )
+        else:
+            details = "No details available for the selected room."
+
+        tk.Label(details_window, text=details, justify=tk.LEFT).pack(pady=10)
+
 
 if __name__ == "__main__":
     db_file = "../data/database.db"
@@ -280,7 +315,6 @@ if __name__ == "__main__":
 
     app = HotelReservationApp(search_manager)
     app.mainloop()
-
 
 # if __name__ == "__main__":
 #     db_file = "../data/database.db"
