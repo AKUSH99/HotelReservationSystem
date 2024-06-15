@@ -34,32 +34,32 @@ class UserManager():
         self._attempts_left = self._max_attempts
         self._current_login = None
 
-    def register_user(self, username, password, firstname, lastname, email, street, zip_code, city):  # #geändert
-        new_address = Address(street=street, zip=zip_code, city=city)  # #geändert
-        new_user = RegisteredGuest(firstname=firstname, lastname=lastname, email=email, address=new_address)  #geändert
-        new_login = Login(username=username, password=password, role_id=2)  #geändert
-        self._session.add(new_address)  # #geändert
-        self._session.add(new_user)  #geändert
-        self._session.add(new_login)  # #geändert
+    def register_user(self, username, password, firstname, lastname, email, street, zip_code, city):
+        new_address = Address(street=street, zip=zip_code, city=city)
+        new_user = RegisteredGuest(firstname=firstname, lastname=lastname, email=email, address=new_address)
+        new_login = Login(username=username, password=password, role_id=2)
+        self._session.add(new_address)
+        self._session.add(new_user)
+        self._session.add(new_login)
         # Verknüpfung des neuen Benutzers mit dem Login, falls erforderlich
-        new_user.login = new_login  # #geändert
-        self._session.commit()  # #geändert
-        return new_user  # #geändert
+        new_user.login = new_login
+        self._session.commit()
+        return new_user
 
-    def register_guest(self, firstname, lastname, email, street, zip, city):  # #geändert
+    def register_guest(self, firstname, lastname, email, street, zip, city):
         try:
-            new_address = Address(street=street, zip=zip, city=city)  # #geändert
+            new_address = Address(street=street, zip=zip, city=city)
             guest = RegisteredGuest(
                 firstname=firstname,
                 lastname=lastname,
                 email=email,
                 address=new_address
-            )  # #geändert
-            self._session.add(new_address)  # #geändert
-            self._session.add(guest)  # #geändert
-            self._session.commit()  # #geändert
-            self._session.refresh(guest)  # #geändert
-            return guest  # #geändert
+            )
+            self._session.add(new_address)
+            self._session.add(guest)
+            self._session.commit()
+            self._session.refresh(guest)
+            return guest
         except Exception as e:
             self._session.rollback()
             raise e

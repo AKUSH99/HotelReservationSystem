@@ -122,9 +122,9 @@ class InventoryManager:
             booking = session.execute(select(Booking).where(Booking.id == booking_id)).scalars().one_or_none()
             if booking:
                 if 'start_date' in kwargs:
-                    booking.start_date = kwargs['start_date']  # Use date object directly
+                    booking.start_date = kwargs['start_date']
                 if 'end_date' in kwargs:
-                    booking.end_date = kwargs['end_date']  # Use date object directly
+                    booking.end_date = kwargs['end_date']
                 if 'guest_id' in kwargs:
                     booking.guest_id = kwargs['guest_id']
                 if 'room_id' in kwargs:

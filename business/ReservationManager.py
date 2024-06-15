@@ -77,9 +77,7 @@ class ReservationManager:
         return self.session.query(Booking).filter_by(id=int(booking_id)).first()
 
     def create_guest(self, firstname, lastname, email):
-        # Erstellt einen temporären Gast mit einer leeren Adresse
         new_address = Address(street=street, zip=zip, city=city)
-    #self.session.add(empty_address)
         self.session.flush()  # Stellt sicher, dass die Adresse eine ID bekommt
         new_guest = Guest(
             firstname=firstname,
@@ -170,8 +168,8 @@ if __name__ == "__main__":
             stars = int(stars)
 
         # Hier wird die Methode zum Suchen von Hotels aufgerufen
-        search_manager = SearchManager(reservation_manager.session)  # #geändert
-        hotels = search_manager.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)  # #geändert
+        search_manager = SearchManager(reservation_manager.session)
+        hotels = search_manager.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)
 
         if not hotels:
             print("No hotels found for your criteria.")
@@ -215,13 +213,13 @@ if __name__ == "__main__":
 
                 if "successfully" in result:
                     booking_id = int(
-                    result.split()[-1])  # Annahme: Die ID ist der letzte Teil der Erfolgsmeldung #geändert
+                    result.split()[-1])
                     booking = reservation_manager.get_booking_by_id(booking_id)
                     save_result = reservation_manager.save_booking_details(booking)
                     print(save_result)
 
     elif choice == "2":
-        # Neuer Benutzer (wird in UserManager.py behandelt)
+
         print("Registration as a new user:")
         firstname = input("Firstname: ")
         lastname = input("Lastname: ")
@@ -330,7 +328,7 @@ if __name__ == "__main__":
         print("Log in to an existing account")
         input_username = input("Enter username: ")
         input_password = input("Enter password: ")
-        user_manager = UserManager(reservation_manager.session)  # #geändert
+        user_manager = UserManager(reservation_manager.session)
         login_result = user_manager.login(input_username, input_password)
         if login_result:
             print("Login successful!")
@@ -360,8 +358,7 @@ if __name__ == "__main__":
             else:
                 stars = int(stars)
 
-            hotels = search_manager.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest,
-                                                                            stars)
+            hotels = search_manager.search_hotels_by_city_date_guests_stars(city, start_date, end_date, max_guest, stars)
             if not hotels:
                 print("No hotels found for your criteria.")
             else:
@@ -410,12 +407,6 @@ if __name__ == "__main__":
                         print("To manage yor bookings go to InventoryManager! Thank you!")
         else:
             print("Login failed! Please check your username and password.")
-
-
-    # Nur zu Testzwecken
-    elif choice == "4":
-        hotels = search_manager.search_hotels_by_city_date_guests_stars("Olten", "2024-05-13", "2024-05-24", 3, None)
-        print(hotels)
 
     else:
         print("Invalid option. Please restart the programme and select a valid option.")
