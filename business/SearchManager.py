@@ -12,8 +12,7 @@ class SearchManager:
     def __init__(self, session):
         self._session = session
 
-    def search_hotels_by_city_date_guests_stars(self, city=None, start_date=None, end_date=None, max_guest=1,
-                                                stars=None):
+    def search_hotels_by_city_date_guests_stars(self, city=None, start_date=None, end_date=None, max_guest=1, stars=None):
         # Aliase für die Tabellen
         HotelAlias = aliased(Hotel, name='hotel_alias')
         AddressAlias = aliased(Address, name='address_alias')
@@ -69,29 +68,6 @@ class SearchManager:
             print(f"ID: {h.id} - {h.name} - {h.stars} Sterne - {h.address.street}, {h.address.zip} {h.address.city}")
 
         return hotels_with_available_rooms
-
-    def search_hotels_by_city_guests_stars_wo_avlblty(self, city=None, max_guest=1, stars=None):
-
-        # Hauptabfrage für Hotels
-        query = select(Hotel).distinct()
-
-        if stars is not None:
-            query = query.where(Hotel.stars >= stars)
-        if city is not None:
-            query = query.join(Address).where(func.lower(Address.city) == city.lower())
-
-        if max_guest != 1:
-            query = query.join(Room).where(Room.max_guests >= max_guest)
-
-        hotels_with_matching_rooms = self._session.execute(query).scalars().all()
-
-        # Eindeutige hotel_ids extrahieren
-        distinct_hotel_ids = list(set(hotels_with_matching_rooms))
-
-        # Ergebnisse anzeigen
-        for h in distinct_hotel_ids:
-            print(f"ID: {h.id} - {h.name} - {h.stars} Sterne - {h.address.street}, {h.address.zip} {h.address.city}")
-        return distinct_hotel_ids
 
     def search_rooms_by_availability(self, start_date: datetime, end_date: datetime, hotel: Hotel = None):
         query = select(Room)

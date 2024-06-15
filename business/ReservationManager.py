@@ -4,6 +4,8 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from datetime import datetime
 import csv
 import re
+from business.SearchManager import SearchManager
+from business.UserManager import UserManager
 from data_models.models import Booking, Room, Hotel, Guest, RegisteredGuest, Address, Login, Role
 from data_access.data_base import init_db
 from pathlib import Path
@@ -29,8 +31,8 @@ class ReservationManager:
 
     def create_booking(self, room_hotel_id, room_number, guest_id, number_of_guests, start_date, end_date, comment=''):
         # User Story 1.3: Erstellt eine Buchung, wenn das Zimmer verfügbar ist
-        start_date = datetime.strptime(start_date, '%Y-%m-%d')
-        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        #start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        #end_date = datetime.strptime(end_date, '%Y-%m-%d')
         if self.is_room_available(room_number, room_hotel_id, start_date, end_date):
             new_booking = Booking(
                 room_hotel_id=room_hotel_id,
@@ -73,14 +75,14 @@ class ReservationManager:
 
     def create_guest(self, firstname, lastname, email):
         # Erstellt einen temporären Gast mit einer leeren Adresse
-        empty_address = Address(street='', zip='', city='')
-        self.session.add(empty_address)
+        new_address = Address(street=street, zip=zip, city=city)
+    #self.session.add(empty_address)
         self.session.flush()  # Stellt sicher, dass die Adresse eine ID bekommt
         new_guest = Guest(
             firstname=firstname,
             lastname=lastname,
             email=email,
-            address_id=empty_address.id
+            address=new_address
         )
         self.session.add(new_guest)
         self.session.commit()
@@ -103,10 +105,16 @@ class ReservationManager:
 
 
 if __name__ == "__main__":
-    from business.SearchManager import SearchManager
-    from business.UserManager import UserManager
 
-    reservation_manager = ReservationManager('../data/database.db')
+
+    db_file = "../data/database.db"
+    database_path = Path(db_file)
+    if not database_path.is_file():
+        init_db(db_file, generate_example_data=True)
+    session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
+
+    Session = session()
+    reservation_manager = ReservationManager(session)
     search_manager = SearchManager('../data/database.db')
     user_manager = UserManager(reservation_manager.session)
 
@@ -129,7 +137,9 @@ if __name__ == "__main__":
                 break
             else:
                 print("Invalid e-mail format. Please enter again.")
-
+        street = input("Enter your street: ")
+        zip = input("Enter your zip: ")
+        city = input("Enter your city: ")
         guest_id = reservation_manager.create_guest(firstname, lastname, email)
 
         # Fortsetzen mit der Buchung
@@ -139,6 +149,7 @@ if __name__ == "__main__":
         while True:
             start_date = input("Enter the start date of your stay (YYYY-MM-DD): ")
             if reservation_manager.validate_date(start_date):
+                start_date = datetime.strptime(start_date, '%Y-%m-%d')
                 break
             else:
                 print("Invalid date format. Please enter again.")
@@ -146,6 +157,7 @@ if __name__ == "__main__":
         while True:
             end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
             if reservation_manager.validate_date(end_date):
+                end_date = datetime.strptime(end_date, '%Y-%m-%d')
                 break
             else:
                 print("Invalid date format. Please enter again.")
