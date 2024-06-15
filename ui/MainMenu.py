@@ -5,7 +5,6 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-#from business.ReservationManager import ReservationManager
 from data_access.data_base import init_db
 from business.UserManager import UserManager
 from business.SearchManager import SearchManager
@@ -213,7 +212,7 @@ if __name__ == '__main__':
     session = scoped_session(sessionmaker(bind=create_engine(f"sqlite:///{database_path}", echo=False)))
     user_manager = UserManager(session)
     search_manager = SearchManager(session)
-    #reservations_manager = ReservationManager(session)
+
 
     main_menu = MainMenu(session)
 

@@ -1,9 +1,12 @@
 from pathlib import Path
+
 from sqlalchemy import create_engine, select, func, and_, or_, not_
 from sqlalchemy.orm import sessionmaker, scoped_session, aliased
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime, timedelta
+
 from data_models.models import *
 from data_access.data_base import init_db
 

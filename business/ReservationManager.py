@@ -1,14 +1,17 @@
+from pathlib import Path
 
 from sqlalchemy import create_engine, select, and_, or_
 from sqlalchemy.orm import sessionmaker, scoped_session
+
 from datetime import datetime
 import csv
 import re
+
 from business.SearchManager import SearchManager
 from business.UserManager import UserManager
 from data_models.models import Booking, Room, Hotel, Guest, RegisteredGuest, Address, Login, Role
 from data_access.data_base import init_db
-from pathlib import Path
+
 
 class ReservationManager:
     def __init__(self, session):

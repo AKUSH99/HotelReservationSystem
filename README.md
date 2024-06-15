@@ -265,3 +265,4 @@ Option "4. Exit" wählen, um das System zu beenden.
 #Annahmen und Interpretationen, falls welche vorhanden sind
 
 -Guest hat kein login, kann aber Buchungen vornehmen (kann sie nicht einsehen).
+-
