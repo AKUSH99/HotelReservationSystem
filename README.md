@@ -22,27 +22,16 @@ Berivan Zorcakmakci
 
 # Team Roles:
 #Eine kurze Übersicht, wer zu welchen Projekt-Themen beigetragen hat (also z.B. zu welchen Use-Stories, Files, Projektphasen, Rollen innerhalb des Teams etc.). Themen, die durch mehrere Teammitglieder bearbeitet wurden, dürft ihr bei allen jeweiligen Teammitgliedern aufführen.
-Philippe Rhiner:
-XY
 
-Sujani Ragumar:
+Wir starteten ursprünglich alle gemeinsam mit der Zusammenarbeit am SearchManager, was uns einen grundlegenden Einblick in die Anforderungen und die technische Struktur gab. 
+Jedoch wurde bald klar, dass dieser Ansatz nicht effizient war, deshalb haben wir die Aufgaben verteilt.
+Um den Workflow zu optimieren, teilten wir das Team in kleinere Gruppen, wobei sich jede auf spezifische Aufgaben in den diversen Managern konzentrierte – ReservationManager, UserManager, InventoryManager und SearchManager. 
+Diese Neustrukturierung ermöglichte es uns, parallel an verschiedenen Systemkomponenten zu arbeiten, wodurch wir schneller vorankamen und flexibler auf Änderungen reagieren konten. 
+Mit der Zunahme der Komplexität stellten wir aber vermehrt fest, dass wir bei Problemen nicht alleine weiter kamen. Deshalb haben wir angefangen wieder in zweier Teams oder teilweise in der ganzen Gruppe Probleme zu besprechen und zu programmieren.
+Diese dynamische und kollektive Arbeitsweise verbesserte nicht nur die Produktivität, sondern auch die Qualität des Endprodukts, indem jeder Einblick und Einfluss auf die Gestaltung jeder Komponente hatte. 
+Durch diese Erfahrung lernten wir die Bedeutung von Anpassungsfähigkeit und Teamarbeit in der Softwareentwicklung schätzen, was sich deutlich in der Zufriedenheit im Team und der Leistungsfähigkeit des fertigen Systems widerspiegelte.
 
-
-Almidin Bangoji:
-XY
-
-Berivan Zorcakmakci:
-SearchManager und UserManager u.a. die folgenden User Stories:
-- 1.1.4.
-- 1.1.5.
-- 1.1.6.
-- 1.2.
-- 1.2.1.
-- 1.2.2.
-- 1.3.
-- 1.4.
-- 1.5.
-- 1.6.
+Fazit: Alle Mitglieder haben praktisch zu allen Managern etwas beigetragen.
 
 # Instructions:
 #Instruktion für uns, wie eure Applikation benutzt werden muss (Schritt-für-Schritt Anleitung insb. welches File(s) ausgeführt werden müssen).
@@ -245,3 +234,5 @@ Option "4. Exit" wählen, um das System zu beenden.
 
 # Assumtions / Interpretations:
 #Annahmen und Interpretationen, falls welche vorhanden sind
+
+-Guest hat kein login, kann aber Buchungen vornehmen (kann sie nicht einsehen).
