@@ -15,30 +15,64 @@ class AdminMenu():
         self._main_menu = main_menu
 
     def run(self):
-        print("Go to InventoryManager for the ADMIN Menu!")
-        print("You are logout!")
+        print("1. ADMIN MENU!")
+        print("2. To register a new admin!")
+        print("3. Logout and return to Main Menu!")
 
-        user_in = input("Choose Option: ")
+        user_in = input("Choose Option (1-2): ")
         match user_in:
             case "1":
+                print("To manage Hotels, Rooms and Bookings go to InventoryManager!")
+
+            case "2":
+                print("To register a new admin go to UserManager!")
+
+            case "3":
                 user_manager.logout()
+                print("You are logout!")
                 return self._main_menu
+
 
 class RegisteredHomeMenu():
 
     def __init__(self, main_menu):
         self._main_menu = main_menu
-
+        self._search_manager = SearchManager(session)
     def run(self):
-        print("1. Logout")
-        print("2. Search Hotels")
-        print("3. Exit")
+        print("1. Logout and return to Main Menu!")
+        print("2. Show all Hotels")
+        print("3. Make a Reservation")
+        print("4. Manage Bookings")
+        print("5. Exit")
 
-        user_in = input("Choose Option (1-3): ")
+        user_in = input("Choose Option (1-5): ")
         match user_in:
             case "1":
                 user_manager.logout()
-                return self._main_menu
+                return self
+
+            case "2":
+                hotels = search_manager.get_all_hotels()
+                for hotel in hotels:
+                    print(hotel)
+                    print("To search for a suitable Hotel go to SearchManager! Thank you!")
+                    return self
+
+            case "3":
+                print("To make a reservation go to ReservationManager! Thank you!")
+                return self
+
+            case "4":
+                print("To manage yor bookings go to InventoryManager! Thank you!")
+                return self
+
+            case "5":
+                print("Thank you for visiting. See you next time!")
+                sys.exit(0)
+
+            case _:
+                print("Invalid option, please try again.")
+                return self
 
 class Login():
     def __init__(self, main_menu):
@@ -82,7 +116,7 @@ class MainMenu():
     def run(self):
         print("1. Login to an existing account")
         print("2. Create an account as a registered user")
-        print("3. Search Hotels without register")
+        print("3. Search Hotels (without register)")
         print("4. Exit")
 
         user_in = input("Choose Option: ")
@@ -103,14 +137,12 @@ class MainMenu():
                 city = input("Enter your city: ")
 
                 print("Registration successful!")
-                print("Remark: To book a room u have to register as a user!")
 
                 while True:
                     print("To book a room visit RegistrationManager.")
                     print("1. Show all Hotels")
                     print("2. Search by Name")
-                    print("3. Book a Room for your stay")
-                    print("4. Exit")
+                    print("3. Exit")
 
                     choice = input("Choose Option (1-3): ")
                     match choice:
@@ -123,8 +155,8 @@ class MainMenu():
                             hotels = search_manager.get_hotels_by_name(searched_name)
                             for hotel in hotels:
                                 print(hotel)
-
-                        case "4":
+                                print("To search for a suitable Hotel go to SearchManager! Thank you!")
+                        case "3":
                             print("Thank you for visiting. Goodbye!")
                             return  # Return to the previous menu
                         case _:
@@ -158,6 +190,7 @@ class MainMenu():
                 print("Thank you for visiting. See you next time!")
                 sys.exit(0)
 
+
 class Application():
     def __init__(self, start):
         self._current = start
@@ -182,12 +215,11 @@ if __name__ == '__main__':
     search_manager = SearchManager(session)
     #reservations_manager = ReservationManager(session)
 
-
-
     main_menu = MainMenu(session)
 
     app = Application(main_menu)
     app.run()
+
 
 
 
