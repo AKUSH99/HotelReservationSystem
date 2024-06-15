@@ -50,7 +50,6 @@ Fazit: Alle Mitglieder haben praktisch zu allen Managern etwas beigetragen.
 1.2.2.  Ich möchte nur die verfügbaren Zimmer sehen 
 
 ## Anleitung:
-SearchManager ausführen! GUI-Fenster für das Hotelreservierungssystem öffnet sich.
 Hotelsuche:
 -	SearchManager.py ausführen, GUI Fenster öffnet sich
 -	Um alle Hotels anzuzeigen, reicht es, ohne Angabe eines Kriteriums auf Search zu klicken
