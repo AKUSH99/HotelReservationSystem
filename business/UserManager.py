@@ -36,10 +36,10 @@ class UserManager():
 
     def register_user(self, username, password, firstname, lastname, email, street, zip_code, city):  # #geändert
         new_address = Address(street=street, zip=zip_code, city=city)  # #geändert
-        new_user = RegisteredGuest(firstname=firstname, lastname=lastname, email=email, address=new_address)  # #geändert
-        new_login = Login(username=username, password=password)  # #geändert
+        new_user = RegisteredGuest(firstname=firstname, lastname=lastname, email=email, address=new_address)  #geändert
+        new_login = Login(username=username, password=password, role_id=2)  #geändert
         self._session.add(new_address)  # #geändert
-        self._session.add(new_user)  # #geändert
+        self._session.add(new_user)  #geändert
         self._session.add(new_login)  # #geändert
         # Verknüpfung des neuen Benutzers mit dem Login, falls erforderlich
         new_user.login = new_login  # #geändert

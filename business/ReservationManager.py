@@ -1,4 +1,4 @@
-# ReservationManager.py
+
 from sqlalchemy import create_engine, select, and_, or_
 from sqlalchemy.orm import sessionmaker, scoped_session
 from datetime import datetime
@@ -256,6 +256,7 @@ if __name__ == "__main__":
         while True:
             start_date = input("Enter the start date of your stay (YYYY-MM-DD): ")
             if reservation_manager.validate_date(start_date):
+                start_date = datetime.strptime(start_date, '%Y-%m-%d')
                 break
             else:
                 print("Invalid date format. Please enter again.")
@@ -263,6 +264,7 @@ if __name__ == "__main__":
         while True:
             end_date = input("Enter the end date of your stay (YYYY-MM-DD): ")
             if reservation_manager.validate_date(end_date):
+                end_date = datetime.strptime(end_date, '%Y-%m-%d')
                 break
             else:
                 print("Invalid date format. Please enter again.")
