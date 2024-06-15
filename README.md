@@ -50,14 +50,16 @@ Fazit: Alle Mitglieder haben praktisch zu allen Managern etwas beigetragen.
 1.2.2.  Ich möchte nur die verfügbaren Zimmer sehen 
 
 ## Anleitung:
-SearchManager ausführen! UI-Fenster für das Hotelreservierungssystem geht auf.
+SearchManager ausführen! GUI-Fenster für das Hotelreservierungssystem öffnet sich.
 Hotelsuche:
-•	Auf „Suchen“ klicken! Alle Hotels werden angezeigt. Wenn man auf dem einzelnen Hotel klickt, werden alle Zimmer pro Hotel angezeigt.
-•	Eingabe Stadt: alle Hotels in der entsprechenden City werden angezeigt.
-•	Eingabe Sterne: alle Hotels mit den entsprechenden Sternen werden angezeigt.
-•	Eingabe Max Gäste: alle Hotels mit den entsprechenden max. Gäste werden angezeigt.
-•	Eingabe Startdatum und Enddatum: alle verfügbaren Zimmer werden angezeigt.
-•	Eingabe Stadt und Gästeanzahl: alle Hotels in der entsprechenden Stadt mit der entsprechende Gästezahl
+-	SearchManager.py ausführen, GUI Fenster öffnet sich
+-	Um alle Hotels anzuzeigen, reicht es, ohne Angabe eines Kriteriums auf Search zu klicken
+-	Ansonsten können einzelne Kriterien ausgewählt werden (Stadt, Anzahl Sterne, Anzahl Gäste und das Buchungsdatum)
+-	Nach einem Klick auf Suche werden alle Hotels angezeigt, welche den Kriterien entsprechen
+-	Hier kann zur Wahl eines Hotels dessen ID eingegeben werden, so dass die Zimmer des Hotels angezeigt werden
+-	Danach kann die ID eines Raums ausgewählt werden, um dessen Details anzuzeigen
+-	Hinweis: Zum Abschliessen der Suche müssen die einzelnen Fenster geschlossen werden
+
 
 
 # ReservationManager
@@ -70,6 +72,33 @@ Hotelsuche:
 2.1.1.  Die Anwendungsfälle für meine Buchungen sind "neu/erstellen", "ändern/aktualisieren", "stornieren/löschen". 
 
 ## Anleitung:
+-	ReservationManager.py ausführen (funktioniert in Konsole)
+  -	Wahl aus drei Optionen (Eingabe über Tastatur):
+1: «Proceed as guest with minimal information» – Erstellt eine Buchung ohne Registrierung als Nutzer und erhält kein Login
+  	Vorname, Nachname und E-Mail Adresse erfassen
+  	City (Ort für Hotel) erfassen
+  	Gewünschte maximale Anzahl Gäste erfassen
+  	Sterne (optional) erfassen
+  	Street, ZIP-Code und City erfassen (Adresse des Gastes)
+  	Datumsangaben erfassen (Start und Enddatum, Format YYYY.MM.DD)
+  	Danach kann ein Hotel ausgewählt werden anhand der ID 
+  	Aus den verfügbaren Zimmern des gewählten Hotels kann das gewünschte ausgewählt werden
+  	Daraufhin wird die Buchung in die Datenbank geschrieben, die Booking ID wird angezeigt und ein CSV-File mit den Buchungsdetails erstellt
+2: «Register as a new user» - Buchung mit Registrierung als Nutzer (erhält ein Login)
+  	Vorname, Nachname und E-Mail Adresse erfassen
+  	Username und Passwort setzen
+  	Adresse des Gastes erfassen
+  	Anschliessend Suche nach Hotel mit der Angabe der Stadt, Anzahl Gäste, Reisedaten und optional Sterne
+  	Anzeige der passenden Hotels, die Hotel ID wird ausgewählt
+  	Es folgt eine Liste der verfügbaren Zimmer, aus welchen anhand der ID eines ausgewählt werden kann
+  	Daraufhin wird die Buchung wiederum in die Datenbank geschrieben, die Booking ID wird angezeigt und ein CSV-File mit den Buchungsdetails erstellt
+3: “Log in to an existing account” – Einloggen in einen bestehenden Account (hat bereits ein Login)
+  	Eingabe des Nutzernamens (Beispiel: sabrina.schmidt@bluemail.ch
+  	Eingabe des Passworts (Beispiel: SuperSecret)
+  	Anschliessend Suche nach Hotel mit der Angabe der Stadt, Anzahl Gäste, Reisedaten und optional Sterne
+  	Anzeige der passenden Hotels, die Hotel ID wird ausgewählt
+  	Es folgt eine Liste der verfügbaren Zimmer, aus welchen anhand der ID eines ausgewählt werden kann
+  	Daraufhin wird die Buchung wiederum in die Datenbank geschrieben, die Booking ID wird angezeigt und ein CSV-File mit den Buchungsdetails erstellt
 
 
 
